@@ -2,10 +2,11 @@
 
 namespace App\Providers;
 
+use App\Models\OtpCodes;
 use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Container\Attributes\Log;
-use Illuminate\Http\Request;
 use Illuminate\Notifications\Messages\MailMessage;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\HtmlString;
 use Illuminate\Support\ServiceProvider;
 
@@ -24,13 +25,13 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        VerifyEmail::toMailUsing(function ($notifiable, $url, Request $request) {
-            $otp = rand(100000, 999999);
-
-            $user = $request->user();
+        VerifyEmail::toMailUsing(function ($notifiable, $url) {
+            // $otp = rand(100000, 999999);
 
             // If you have a method on your User model to store and retrieve the OTP:
             // $otp = $notifiable->generateAndStoreOtp();
+
+            $otp = Cache::pull('user_otp');
 
             return (new MailMessage)
                 ->greeting('hello dear!')

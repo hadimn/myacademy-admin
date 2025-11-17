@@ -5,13 +5,18 @@ namespace App\Models;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
+use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Hash;
 
 use function Symfony\Component\Clock\now;
 
 class OtpCodes extends Model
 {
+    use Notifiable;
+
     protected $table = "otp_codes";
+
+    protected $primaryKey = "otp_id";
 
     protected $fillable = [
         "user_id",
@@ -27,7 +32,7 @@ class OtpCodes extends Model
 
     protected $casts = [
         "is_verified" => "boolean",
-        "hashed_otp" => "hashed",
+        // "hashed_otp" => "hashed",
         "created_at" => "datetime",
         "updated_at" => "datetime",
         "expires_at" => "datetime",
@@ -46,7 +51,7 @@ class OtpCodes extends Model
     }
 
     public function verifyCode($otpInput){
-        return Hash::check($otpInput, $this->hashe_otp);
+        return Hash::check($otpInput, $this->hashed_otp);
     }
 
     public function isExpired(){
@@ -57,7 +62,6 @@ class OtpCodes extends Model
     }
 
     public function markAsVerified(){
-        $this->is_verified = true;
-        $this->save();
+        $this->is_verified = 1;
     }
 }

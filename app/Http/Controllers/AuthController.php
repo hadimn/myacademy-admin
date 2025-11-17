@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\OtpCodes;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 
 class AuthController extends Controller
 {
@@ -33,8 +35,15 @@ class AuthController extends Controller
                 ]);
             }
 
-            $otp = (new OtpCodes())->generateNewOtp();
-            
+            $otp = rand(100000, 999999);
+            Log::debug("my otp is: $otp");
+            Cache::put('user_otp', "$otp");
+            $hashed_otp = Hash::make($otp);
+
+            $newOtp = new OtpCodeController();
+            $newOtp->newOtp($user->id, $hashed_otp, Carbon::now()->addMinute(15));
+
+
             event(new Registered($user));
 
             return response()->json([
@@ -88,6 +97,7 @@ class AuthController extends Controller
                 'message' => 'user logged in successfuly',
                 'user' => $user,
                 'token' => $token,
+                // 'otp' => Cache::get('user_otp'),
             ], 201);
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json([

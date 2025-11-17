@@ -2,6 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\OtpCodes;
+use App\Models\User;
+use Carbon\Carbon;
+use Illuminate\Auth\Events\Verified;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 
@@ -72,5 +76,44 @@ class UserController extends Controller
                 "error" => $e->getMessage(),
             ], 500);
         }
+    }
+
+    public function verifyEmailWithOtp(Request $request, $id, $otp)
+    {
+        $user = User::findOrFail($id);
+
+        // Check if already verified
+        if ($user->hasVerifiedEmail()) {
+            return response()->json(['message' => 'Email already verified.'], 200);
+        }
+
+        $hashedOtp = OtpCodes::where('user_id', $user->id)
+            ->where("is_verified", 0)
+            ->where("expires_at", ">", Carbon::now())
+            ->first();
+
+        if (!$hashedOtp) {
+            return response()->json([
+                "status" => "failed",
+                "message" => "OTP not found or expired.",
+            ], 404);
+        }
+
+        if (!Hash::check($otp, $hashedOtp->hashed_otp)) {
+            return response()->json([
+                "status" => "failed",
+                "message" => "you entered wrong otp, please try again!",
+            ]);
+        }
+
+        // Mark as verified
+        $user->markEmailAsVerified();
+        $hashedOtp->is_verified = true;
+        $hashedOtp->save();
+        event(new Verified($user));
+        return response()->json([
+            'message' => 'Email verified successfully.',
+            "data" => $hashedOtp,
+        ], 200);
     }
 }

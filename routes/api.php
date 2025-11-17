@@ -4,6 +4,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CoursesController;
 use App\Http\Controllers\LessonsController;
 use App\Http\Controllers\UserController;
+use App\Models\OtpCodes;
 use App\Models\User;
 use Illuminate\Auth\Events\Verified;
 use Illuminate\Http\Request;
@@ -18,32 +19,21 @@ Route::delete('/users/{id}', [AuthController::class, 'deleteUserById']); // just
 
 
 
-// Route::get('/email/verify/{id}/{hash}', function (Request $request, $id, $hash) {
-//     $user = User::findOrFail($id);
+Route::get('/email/verify/{id}/{hash}', [UserController::class, 'verifyEmailWithOtp'])->name('verification.verify');
 
-//     // Validate the hash matches
-//     if (! hash_equals((string) $hash, sha1($user->getEmailForVerification()))) {
-//         return response()->json(['message' => 'Invalid verification link.'], 400);
-//     }
-
-//     // Check if already verified
-//     if ($user->hasVerifiedEmail()) {
-//         return response()->json(['message' => 'Email already verified.'], 200);
-//     }
-
-//     // Mark as verified
-//     $user->markEmailAsVerified();
-//     event(new Verified($user));
-
-//     return response()->json(['message' => 'Email verified successfully.'], 200);
-// })->middleware('signed')->name('verification.verify');
 
 Route::post('/email/verification-notification', function (Request $request) {
     $request->user()->sendEmailVerificationNotification();
 
     return back()->with('message', 'Verification link sent!');
-})->middleware(['auth:sanctum', 'throttle:6,1'])->name('verification.send');
+})->middleware(['auth', 'throttle:6,1'])->name('verification.send');
 
+Route::get('/login', function () {
+    return response()->json([
+        "status" => "success",
+        "message" => "hello bro",
+    ]);
+});
 
 
 Route::middleware(['auth:sanctum'])->group(function () {
@@ -52,7 +42,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     // profile endpoints
     Route::prefix("profile")->group(function () {
         Route::get('/details', [UserController::class, 'getUserDetails']);
-        Route::get('/details/edit', [UserController::class, 'editUserDetails']);
+        Route::get('/details/edit', [userController::class, 'editUserDetails']);
     });
 
     Route::prefix('course')->group(function () {
@@ -65,6 +55,14 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::delete('/{course_id}/delete', [CoursesController::class, 'deleteCourse']);
     });
 
+    Route::prefix('section')->group(function(){
+        //section routes
+    });
+
+    Route::prefix('units')->group(function(){
+        //units routes
+    });
+
     Route::prefix('lesson')->group(function () {
         // all accounts:
         Route::get('/all', [LessonsController::class, 'showLessons']);
@@ -73,5 +71,9 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::post('/create', [LessonsController::class, 'newLesson']);
         Route::post('/{lesson_id}/edit', [LessonsController::class, 'editLesson'])->where('lesson_id', '[0-9]+');
         Route::delete('/{lesson_id}/delete', [LessonsController::class, 'deleteLesson'])->where('lesson_id', '[0-9]+');
+    });
+
+    Route::prefix('questions')->group(function(){
+        //questions routes
     });
 });

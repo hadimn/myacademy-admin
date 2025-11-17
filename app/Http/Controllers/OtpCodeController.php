@@ -8,19 +8,13 @@ use Illuminate\Support\Facades\Hash;
 
 class OtpCodeController extends Controller
 {
-    public function newOtp(Request $request)
+    public function newOtp($user_id, $hashed_otp, $expires_at)
     {
         try {
-            $request->validate([
-                "user_id" => "required|integer|min:100000|max:999999",
-                "hashed_otp" => "required|string|unique:otp_codes",
-                "expires_at" => "required|date|after:now",
-            ]);
-
             $newOtp = OtpCodes::create([
-                "user_id" => $request->user_id,
-                "hashed_otp" => Hash::make($request->hashed_otp),
-                "expires_at" => $request->expires_at,
+                "user_id" => $user_id,
+                "hashed_otp" => $hashed_otp,
+                "expires_at" => $expires_at,
             ]);
 
             if (!$newOtp) {
