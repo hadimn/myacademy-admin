@@ -8,9 +8,15 @@ class QuestionsModel extends Model
 {
     protected $table = 'questions';
 
-    protected $primaryKey = 'question_id';
+    protected $primaryKey = 'questions_id';
 
     protected $guarded = [];
+
+    protected $casts = [
+        'options' => 'array',
+        'correct_answers' => 'array',
+        'is_last' => 'boolean',
+    ];
 
     public $timestamps = true;
 
@@ -18,4 +24,8 @@ class QuestionsModel extends Model
     {
         return $this->belongsTo(LessonsModel::class, 'lesson_id');
     }
+
+    // public function answeredQuestion(){
+    //     return $this->hasMany(AnsweredQuestionsModel::class, 'questions_id', 'questions_id');
+    // }
 }

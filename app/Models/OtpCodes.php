@@ -42,26 +42,45 @@ class OtpCodes extends Model
         "is_verified" => false,
     ];
 
-    public function user(){
-        $this->belongsTo(User::class, 'users_id', 'id');
+    public function user()
+    {
+        $this->belongsTo(User::class, 'user_id', 'id');
     }
 
-    public function generateNewOtp(){
+    public function generateNewOtp()
+    {
         return rand(100000, 999999);
     }
 
-    public function verifyCode($otpInput){
+    public function verifyCode($otpInput)
+    {
         return Hash::check($otpInput, $this->hashed_otp);
     }
 
-    public function isExpired(){
-        if($this->expires_at >= now()){
+    public function isExpired()
+    {
+        if ($this->expires_at >= now()) {
             return true;
         }
         return false;
     }
 
-    public function markAsVerified(){
+    public function markAsVerified()
+    {
         $this->is_verified = 1;
+    }
+
+    public static function deleteLatest($userId)
+    {
+        $latestOtp = self::where('user_id', $userId)
+            ->where('expires_at', '<', Carbon::now())
+            ->where("is_verified", false)
+            ->orderBy('created_at', 'desc')
+            ->first();
+        if ($latestOtp) {
+            $latestOtp->delete();
+            return true;
+        }
+        return false;
     }
 }

@@ -16,6 +16,8 @@ return new class extends Migration
             $table->foreignId('section_id')->constrained(table:'sections', column:'section_id');
             $table->string('title');
             $table->string('color');
+            $table->integer('order');
+            $table->boolean('is_last')->default(false);
             $table->timestamps();
         });
     }

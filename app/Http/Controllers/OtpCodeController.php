@@ -11,11 +11,12 @@ class OtpCodeController extends Controller
     public function newOtp($user_id, $hashed_otp, $expires_at)
     {
         try {
+
             $newOtp = OtpCodes::create([
-                "user_id" => $user_id,
-                "hashed_otp" => $hashed_otp,
-                "expires_at" => $expires_at,
-            ]);
+                    "user_id" => $user_id,
+                    "hashed_otp" => $hashed_otp,
+                    "expires_at" => $expires_at,
+                ]);
 
             if (!$newOtp) {
                 return response()->json([
@@ -67,5 +68,17 @@ class OtpCodeController extends Controller
                 "error" => $e->getMessage(),
             ]);
         }
+    }
+
+    public function getOtpByUser($user_id)
+    {
+        $otp = OtpCodes::where('user_id', $user_id)
+            ->orderBy('created_at', 'desc')
+            ->first();
+        if (!$otp) {
+            return null;
+        }
+
+        return $otp;
     }
 }

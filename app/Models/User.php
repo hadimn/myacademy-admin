@@ -18,21 +18,14 @@ class User extends Authenticatable implements MustVerifyEmail
      *
      * @var list<string>
      */
-    protected $fillable = [
-        'name',
-        'email',
-        'password',
-    ];
+    protected $fillable = ['name', 'email', 'password'];
 
     /**
      * The attributes that should be hidden for serialization.
      *
      * @var list<string>
      */
-    protected $hidden = [
-        'password',
-        'remember_token',
-    ];
+    protected $hidden = ['password', 'remember_token'];
 
     /**
      * Get the attributes that should be cast.
@@ -47,8 +40,35 @@ class User extends Authenticatable implements MustVerifyEmail
         ];
     }
 
+    public function otp()
+    {
+        return $this->hasOne(OtpCodes::class, 'user_id');
+    }
 
-    public function otp(){
-        return $this->hasOne(OtpCodes::class, 'otp_id');
+    public function enrollments()
+    {
+        return $this->hasMany(EnrollmentsModel::class, 'user_id', 'id');
+    }
+
+    public function answeredQuestion()
+    {
+        return $this->hasMany(AnsweredQuestionsModel::class, 'user_id', 'id');
+    }
+
+    
+    public function badges()
+    {
+        return $this->hasMany(UserBadgesModel::class, 'user_id', 'id');
+    }
+
+    // Add these accessors for easy streak access
+    public function getCurrentStreakAttribute(): int
+    {
+        return $this->attributes['current_streak'] ?? 0;
+    }
+
+    public function getLongestStreakAttribute(): int
+    {
+        return $this->attributes['longest_streak'] ?? 0;
     }
 }

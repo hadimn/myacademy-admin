@@ -15,20 +15,24 @@ class SectionsModel extends Model
         "title",
         "description",
         "image_url",
+        "order",
+        "is_last",
     ];
 
     protected $casts = [
         "created_at" => "datetime",
         "updated_at" => "datetime",
+        "order" => "integer",
+        "is_last" => "boolean",
     ];
 
     public function course()
     {
-        $this->belongsTo(CoursesModel::class, 'course_id');
+        return $this->belongsTo(CoursesModel::class, 'course_id');
     }
 
     public function units()
     {
-        $this->hasMany(UnitsModel::class, 'unit_id');
+        return $this->hasMany(UnitsModel::class, 'section_id', 'section_id');
     }
 }

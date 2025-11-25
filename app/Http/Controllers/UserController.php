@@ -4,13 +4,31 @@ namespace App\Http\Controllers;
 
 use App\Models\OtpCodes;
 use App\Models\User;
+use App\Notifications\AccountVerified;
 use Carbon\Carbon;
 use Illuminate\Auth\Events\Verified;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 
-class UserController extends Controller
+class UserController extends BaseCrudController
 {
+
+    public function __construct()
+    {
+        $this->model = User::class;
+        $this->resourceName = "user";
+        $this->validationRules = [
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users',
+            'password' => 'required|string|min:6|confirmed',
+        ];
+        $this->editValidationRules = [
+            'name' => 'sometimes|required|string|max:255',
+            'email' => 'sometimes|required|email|unique:users,email,',
+            'password' => 'sometimes|required|string|min:6|confirmed',
+        ];
+    }
+
     public function getUserDetails(Request $request)
     {
         try {
@@ -111,6 +129,7 @@ class UserController extends Controller
         $hashedOtp->is_verified = true;
         $hashedOtp->save();
         event(new Verified($user));
+        $user->notify(new AccountVerified());
         return response()->json([
             'message' => 'Email verified successfully.',
             "data" => $hashedOtp,

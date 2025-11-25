@@ -17,6 +17,8 @@ return new class extends Migration
             $table->string('title');
             $table->longText('description')->nullable();
             $table->longText('image_url')->charset('binary')->nullable();
+            $table->integer('order');
+            $table->boolean('is_last')->default(false);
             $table->timestamps();
         });
     }

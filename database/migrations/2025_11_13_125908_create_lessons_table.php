@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('lessons', function (Blueprint $table) {
             $table->id('lesson_id');
-            $table->foreignId('unit_id')->constrained(table: 'units');
+            $table->foreignId('unit_id')->constrained(table: 'units', column:'unit_id');
             $table->string('title');
             $table->longText('description');
             $table->longText('content')->nullable();
@@ -21,7 +21,9 @@ return new class extends Migration
             $table->longText('image_url')->charset('binary')->nullable();
             $table->integer('duration')->nullable();
             $table->enum('lesson_type', ['normal', 'review', 'practice'])->default('normal');
+            $table->boolean('is_last')->default(0);
             $table->boolean('chest_after')->default(0);
+            $table->integer('order');
             $table->timestamps();
         });
     }

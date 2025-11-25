@@ -19,7 +19,9 @@ class LessonsModel extends Model
         "image_url",
         "duration",
         "lesson_type",
-        "chest_after"
+        "is_last",
+        "chest_after",
+        "order",
     ];
 
     protected $casts = [
@@ -27,11 +29,14 @@ class LessonsModel extends Model
         'chest_after' => 'boolean',
         'create_at' => 'datetime',
         'updated_at' => 'datetime',
+        'is_last' => 'boolean',
+        'order' => 'integer',
     ];
 
     protected $attributes = [
         "lesson_type" => "normal",
-        "chest_after" => 0
+        "chest_after" => 0,
+        "is_last" => 0,
     ];
 
     public $timestamps = true;

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\OtpCodes;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Auth\Events\Registered;
@@ -41,7 +42,7 @@ class AuthController extends Controller
             $hashed_otp = Hash::make($otp);
 
             $newOtp = new OtpCodeController();
-            $newOtp->newOtp($user->id, $hashed_otp, Carbon::now()->addMinute(15));
+            $newOtp->newOtp($user->id, $hashed_otp, Carbon::now()->addMinute(5));
 
 
             event(new Registered($user));
@@ -78,7 +79,7 @@ class AuthController extends Controller
             if (!$user) {
                 return response()->json([
                     'status' => 'failed',
-                    'message' => 'email is not found try to check!',
+                    'message' => 'email is not found check and try again!',
                 ], 401);
             }
 
@@ -89,16 +90,61 @@ class AuthController extends Controller
                 ], 401);
             }
 
-            // $token = $user->createToken('auth_token')->plainTextToken;
-            $token = $user->createToken('auth_token')->plainTextToken;
+            if ($user->hasVerifiedEmail()) {
+                $token = $user->createToken('auth_token')->plainTextToken;
+                return response()->json([
+                    'status' => 'success',
+                    'message' => 'user logged in successfuly',
+                    'user' => $user,
+                    'token' => $token,
+                    // 'otp' => Cache::get('user_otp'),
+                ], 201);
+            }
 
-            return response()->json([
-                'status' => 'success',
-                'message' => 'user logged in successfuly',
-                'user' => $user,
-                'token' => $token,
-                // 'otp' => Cache::get('user_otp'),
-            ], 201);
+            $otp = $user->otp;
+
+            if ($otp) {
+                if ($otp->isExpired()) {
+                    $otp->delete();
+                    $myOtp = rand(100000, 999999);
+                    Log::debug("my otp is: $myOtp");
+                    Cache::put('user_otp', "$myOtp");
+                    $hashed_otp = Hash::make($myOtp);
+
+                    $newOtp = new OtpCodeController();
+                    $newOtp->newOtp($user->id, $hashed_otp, Carbon::now()->addMinute(15));
+                    $user->sendEmailVerificationNotification();
+                    return response()->json([
+                        "status" => "failed",
+                        "type" => "verify-otp",
+                        "messages" => "you should verify your account, before signing in!",
+                        "data" => $otp,
+                    ]);
+                }
+
+                return response()->json([
+                    "status" => "failed",
+                    "type" => "use_old_otp",
+                    "message" => "you can use your latest otp send to you by your email",
+                ]);
+            }
+
+            if (!$otp) {
+                $myOtp = rand(100000, 999999);
+                Log::debug("my otp is: $myOtp");
+                Cache::put('user_otp', "$myOtp");
+                $hashed_otp = Hash::make($myOtp);
+
+                $newOtp = new OtpCodeController();
+                $newOtp->newOtp($user->id, $hashed_otp, Carbon::now()->addMinute(15));
+                $user->sendEmailVerificationNotification();
+                return response()->json([
+                    "status" => "failed",
+                    "type" => "verify-otp",
+                    "messages" => "you should verify your account, before signing in!",
+                    "data" => $otp,
+                ]);
+            }
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json([
                 'status' => 'failed',
@@ -160,7 +206,7 @@ class AuthController extends Controller
             }
 
             // Optionally revoke all tokens before deleting
-            // $user->tokens()->delete();
+            $user->tokens()->delete();
 
             // Delete the user
             $user->delete();

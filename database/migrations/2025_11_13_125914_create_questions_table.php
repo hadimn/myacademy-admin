@@ -20,6 +20,7 @@ return new class extends Migration
             $table->longText('video_url')->charset('binary')->nullable();
             $table->longText('image_url')->charset('binary')->nullable();
             $table->integer('points');
+            $table->boolean('is_last')->default(0);
             $table->json('options')->nullable();
             $table->json('correct_answer');
             $table->longText('explanation')->nullable();
