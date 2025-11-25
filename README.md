@@ -1,7 +1,3 @@
-This is a professional and structured README description for the **MyAcademy Admin** project, based on the inference that it serves as the administrative backend for a learning management system (LMS) built with the **Laravel** framework.
-
------
-
 # MyAcademy Admin 🎓
 
 The official administrative panel for the MyAcademy platform, designed to manage all educational resources, users, and system configurations efficiently. Built on the robust **Laravel** PHP framework, MyAcademy Admin provides a streamlined and secure interface for seamless operations management.
