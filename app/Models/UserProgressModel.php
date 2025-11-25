@@ -42,28 +42,4 @@ class UserProgressModel extends Model
     {
         return $this->belongsTo(LessonsModel::class, 'lesson_id', 'lesson_id');
     }
-
-    protected static function booted()
-    {
-        static::created(function ($progress) {
-            if ($progress->is_completed) {
-                $streakService = app(\App\Services\StreakService::class);
-                $notifications = $streakService->updateStreak($progress->user);
-
-                // Also check for badges
-                $badgeService = app(\App\Services\BadgeService::class);
-                $badgeService->checkAndAwardBadges($progress->user);
-            }
-        });
-
-        static::updated(function ($progress) {
-            if ($progress->is_completed && $progress->getOriginal('is_completed') === false) {
-                $streakService = app(\App\Services\StreakService::class);
-                $notifications = $streakService->updateStreak($progress->user);
-
-                $badgeService = app(\App\Services\BadgeService::class);
-                $badgeService->checkAndAwardBadges($progress->user);
-            }
-        });
-    }
 }

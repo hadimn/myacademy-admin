@@ -40,25 +40,18 @@ Route::prefix('user')->group(function () {
 
     Route::post('/logout', [AuthController::class, 'logout'])->middleware(['auth:sanctum']);
 
+    
     Route::get('/', [UserController::class, 'index']);
     Route::get('/{id}', [UserController::class, 'show'])->where('id', '[0-9]+');
     Route::post('/create', [UserController::class, 'store']);
     Route::post('/{id}/edit', [UserController::class, 'update'])->where('id', '[0-9]+');
     Route::delete('/{id}/delete', [UserController::class, 'destroy'])->where('id', '[0-9]+');
 
+    // correcting users answers route and adding points if answer is correct for each question.
     Route::middleware(['auth:sanctum'])->group(function () {
         Route::prefix('question')->group(function () {
             Route::post('{question_id}/answer/correct/', [UserProgressController::class, 'addPointsForCorrectAnswers']);
         });
-
-        // Streak routes
-        Route::get('/streak', [StreakController::class, 'getStreakInfo']);
-        Route::post('/streak/update', [StreakController::class, 'updateStreak']);
-
-        // Badge routes
-        Route::get('/badges', [BadgeController::class, 'getUserBadges']);
-        Route::post('/badges/check', [BadgeController::class, 'checkForNewBadges']);
-        Route::get('/badges/progress/{type}', [BadgeController::class, 'getBadgeProgress']);
     });
 });
 
