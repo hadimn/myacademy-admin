@@ -25,7 +25,12 @@ class QuestionsModel extends Model
         return $this->belongsTo(LessonsModel::class, 'lesson_id');
     }
 
-    // public function answeredQuestion(){
-    //     return $this->hasMany(AnsweredQuestionsModel::class, 'questions_id', 'questions_id');
-    // }
+    public function answeredQuestions()
+    {
+        return $this->hasMany(
+            AnsweredQuestionsModel::class,
+            'questions_id',
+            'questions_id'
+        );
+    }
 }

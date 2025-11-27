@@ -96,10 +96,6 @@ class BaseCrudController extends Controller
 
             $resource->save();
 
-            if (!$resource->save()) {
-                return $this->errorResponse("Failed to update {$this->resourceName}");
-            }
-
             return response()->json([
                 'status' => 'success',
                 'message' => "{$this->resourceName} updated successfully",

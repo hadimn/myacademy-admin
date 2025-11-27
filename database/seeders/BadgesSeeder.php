@@ -3,9 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\BadgesModel;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
-use Faker\Factory as Faker;
 
 class BadgesSeeder extends Seeder
 {
@@ -14,62 +12,164 @@ class BadgesSeeder extends Seeder
      */
     public function run(): void
     {
-        $faker = Faker::create();
+        BadgesModel::truncate();
+        $badges = [
+            // 🏆 STREAK BADGES
+            [
+                'name' => '3-Day Streak',
+                'description' => 'Maintain a 3-day learning streak',
+                'icon' => '🔥',
+                'type' => 'streak',
+                'criteria' => ['days_required' => 3],
+                'points' => 50,
+            ],
+            [
+                'name' => '1-Week Streak',
+                'description' => 'Maintain a 7-day learning streak',
+                'icon' => '⚡',
+                'type' => 'streak',
+                'criteria' => ['days_required' => 7],
+                'points' => 100,
+            ],
+            [
+                'name' => '2-Week Streak',
+                'description' => 'Maintain a 14-day learning streak',
+                'icon' => '🌟',
+                'type' => 'streak',
+                'criteria' => ['days_required' => 14],
+                'points' => 200,
+            ],
+            [
+                'name' => '1-Month Streak',
+                'description' => 'Maintain a 30-day learning streak',
+                'icon' => '🎯',
+                'type' => 'streak',
+                'criteria' => ['days_required' => 30],
+                'points' => 500,
+            ],
 
-        // 1. Define the CORE LOGIC (Criteria, Base Names, Points, and now TYPE) statically
-        $staticBadges = [
-            // Criteria: lessons_completed -> Completion
-            ['name_base' => 'The Starter', 'criteria' => ['type' => 'lessons_completed', 'value' => 1], 'points' => 10, 'type' => 'completion'],
+            // 📚 COURSE COMPLETION BADGES
+            [
+                'name' => 'First Course',
+                'description' => 'Complete your first course',
+                'icon' => '🎓',
+                'type' => 'course_completion',
+                'criteria' => ['courses_required' => 1],
+                'points' => 50,
+            ],
+            [
+                'name' => 'Course Explorer',
+                'description' => 'Complete 3 courses',
+                'icon' => '📖',
+                'type' => 'course_completion',
+                'criteria' => ['courses_required' => 3],
+                'points' => 150,
+            ],
+            [
+                'name' => 'Course Master',
+                'description' => 'Complete 5 courses',
+                'icon' => '🏆',
+                'type' => 'course_completion',
+                'criteria' => ['courses_required' => 5],
+                'points' => 300,
+            ],
+            [
+                'name' => 'Learning Champion',
+                'description' => 'Complete 10 courses',
+                'icon' => '👑',
+                'type' => 'course_completion',
+                'criteria' => ['courses_required' => 10],
+                'points' => 600,
+            ],
 
-            // Criteria: courses_enrolled -> Milestone (or completion of the enrollment step)
-            ['name_base' => 'Course Enthusiast', 'criteria' => ['type' => 'courses_enrolled', 'value' => 3], 'points' => 25, 'type' => 'milestone'],
+            // ⭐ POINTS BADGES
+            [
+                'name' => 'Points Collector',
+                'description' => 'Earn 100 points from correct answers',
+                'icon' => '⭐',
+                'type' => 'points',
+                'criteria' => ['points_required' => 100],
+                'points' => 25,
+            ],
+            [
+                'name' => 'Quick Learner',
+                'description' => 'Earn 500 points from correct answers',
+                'icon' => '🚀',
+                'type' => 'points',
+                'criteria' => ['points_required' => 500],
+                'points' => 100,
+            ],
+            [
+                'name' => 'Knowledge Seeker',
+                'description' => 'Earn 1000 points from correct answers',
+                'icon' => '💡',
+                'type' => 'points',
+                'criteria' => ['points_required' => 1000],
+                'points' => 250,
+            ],
+            [
+                'name' => 'Learning Expert',
+                'description' => 'Earn 2500 points from correct answers',
+                'icon' => '🧠',
+                'type' => 'points',
+                'criteria' => ['points_required' => 2500],
+                'points' => 500,
+            ],
 
-            // Criteria: perfect_quizzes -> Performance
-            ['name_base' => 'Quiz Whiz', 'criteria' => ['type' => 'perfect_quizzes', 'value' => 5], 'points' => 50, 'type' => 'performance'],
+            // 🎯 LESSON COMPLETION BADGES
+            [
+                'name' => 'First Lesson',
+                'description' => 'Complete your first lesson',
+                'icon' => '✅',
+                'type' => 'lesson_completion',
+                'criteria' => ['lessons_required' => 1],
+                'points' => 10,
+            ],
+            [
+                'name' => 'Lesson Explorer',
+                'description' => 'Complete 10 lessons',
+                'icon' => '📚',
+                'type' => 'lesson_completion',
+                'criteria' => ['lessons_required' => 10],
+                'points' => 75,
+            ],
+            [
+                'name' => 'Lesson Master',
+                'description' => 'Complete 25 lessons',
+                'icon' => '🎯',
+                'type' => 'lesson_completion',
+                'criteria' => ['lessons_required' => 25],
+                'points' => 200,
+            ],
 
-            // Criteria: time_spent_seconds -> Milestone (reaching a time goal)
-            ['name_base' => 'Marathon Learner', 'criteria' => ['type' => 'time_spent_seconds', 'value' => 3600], 'points' => 40, 'type' => 'milestone'],
-
-            // Criteria: section_completion -> Completion
-            ['name_base' => 'Section Master I', 'criteria' => ['type' => 'section_completion', 'value' => 1], 'points' => 75, 'type' => 'completion'],
-
-            // Criteria: lessons_completed -> Completion
-            ['name_base' => 'Lesson Pro', 'criteria' => ['type' => 'lessons_completed', 'value' => 20], 'points' => 100, 'type' => 'completion'],
-
-            // Criteria: paid_course_enrollment -> Milestone
-            ['name_base' => 'First Pay', 'criteria' => ['type' => 'paid_course_enrollment', 'value' => 1], 'points' => 50, 'type' => 'milestone'],
-
-            // Criteria: profile_complete -> Milestone
-            ['name_base' => 'Community Member', 'criteria' => ['type' => 'profile_complete', 'value' => 1], 'points' => 20, 'type' => 'milestone'],
-
-            // Criteria: courses_completed -> Completion
-            ['name_base' => 'Top Student', 'criteria' => ['type' => 'courses_completed', 'value' => 1], 'points' => 500, 'type' => 'completion'],
+            // ⏰ TIME SPENT BADGES
+            [
+                'name' => 'Dedicated Learner',
+                'description' => 'Spend 1 hour learning',
+                'icon' => '⏰',
+                'type' => 'time_spent',
+                'criteria' => ['minutes_required' => 60],
+                'points' => 30,
+            ],
+            [
+                'name' => 'Marathon Learner',
+                'description' => 'Spend 5 hours learning',
+                'icon' => '🏃',
+                'type' => 'time_spent',
+                'criteria' => ['minutes_required' => 300],
+                'points' => 100,
+            ],
         ];
 
-        // 2. Loop through the static criteria and use Faker for random flavor
-        foreach ($staticBadges as $data) {
-
-            // Use Faker to generate a random description that sounds meaningful
-            $description = $data['name_base'] . ': ' . $faker->optional(0.7)->sentence(6, true);
-
-            BadgesModel::create([
-                'name'          => $data['name_base'],
-                'description'   => $description,
-
-                // ICON is set to NULL as requested
-                'icon'          => null,
-
-                // 💥 FIX: Inject the required 'type' field
-                'type'          => $data['type'],
-
-                // Criteria remains static and is converted to JSON
-                'criteria'      => json_encode($data['criteria']),
-                'points'        => $data['points'],
-                'created_at'    => now(),
-                'updated_at'    => now(),
-            ]);
+        foreach ($badges as $badge) {
+            BadgesModel::create($badge);
         }
 
-        echo "Successfully created " . count($staticBadges) . " initial badges with randomized descriptions and null icons.\n";
+        $this->command->info('✅ ' . count($badges) . ' badges created successfully!');
+        $this->command->info('🎯 Streak Badges: 4');
+        $this->command->info('📚 Course Badges: 4');
+        $this->command->info('⭐ Points Badges: 4');
+        $this->command->info('✅ Lesson Badges: 3');
+        $this->command->info('⏰ Time Badges: 2');
     }
 }

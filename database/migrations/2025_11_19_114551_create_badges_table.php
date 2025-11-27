@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('name');
             $table->text('description');
             $table->longText('icon')->charset('binary')->nullable();
-            $table->enum('type', ['completion', 'performance', 'streak', 'milestone']);
+            $table->enum('type', ['streak', 'course_completion', 'points', 'lesson_completion', 'time_spent']);
             $table->json('criteria');
             $table->integer('points');
             $table->timestamps();

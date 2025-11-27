@@ -26,6 +26,8 @@ class UserController extends BaseCrudController
             'name' => 'sometimes|required|string|max:255',
             'email' => 'sometimes|required|email|unique:users,email,',
             'password' => 'sometimes|required|string|min:6|confirmed',
+            'current_streak'=>'sometimes|required|integer|min:0',
+            'longest_streak'=>'sometimes|required|integer|min:0',
         ];
     }
 

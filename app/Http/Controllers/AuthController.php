@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\OtpCodes;
 use App\Models\User;
+use App\Services\AuthService;
 use Carbon\Carbon;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\Request;
@@ -13,55 +14,45 @@ use Illuminate\Support\Facades\Log;
 
 class AuthController extends Controller
 {
+    protected $authService;
+    public function __construct(AuthService $authService)
+    {
+        $this->authService = $authService;w
+    }
     public function register(Request $request)
     {
         try {
             $request->validate([
-                'name' => 'required|string|max:255',
-                'email' => 'required|email|unique:users',
-                'password' => 'required|string|min:6|confirmed',
-            ]);
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users',
+            'password' => 'required|string|min:6|confirmed',
+        ]);
 
-            $user = User::create([
-                'name' => $request->name,
-                'email' => $request->email,
-                'password' => Hash::make($request->password),
-            ]);
+        $user = $this->authService->registerUser($request->only('name', 'email', 'password'));
 
-            if (!$user) {
-                return response()->json([
-                    "status" => "failed",
-                    "message" => "Account creation failed due to a system error.",
-                    "suggestion" => "Please try again in a few moments.",
-                ]);
-            }
-
-            $otp = rand(100000, 999999);
-            Log::debug("my otp is: $otp");
-            Cache::put('user_otp', "$otp");
-            $hashed_otp = Hash::make($otp);
-
-            $newOtp = new OtpCodeController();
-            $newOtp->newOtp($user->id, $hashed_otp, Carbon::now()->addMinute(5));
-
-
-            event(new Registered($user));
-
+        if(!$user){
             return response()->json([
-                'status' => 'success',
-                'message' => 'user registered successfuly',
-                'user' => $user,
-            ], 201);
+                "status" => "failed",
+                "message" => "can't register your account due to some errors!",
+            ], 500);
+        }
+
+        return response()->json([
+            "status" => "success",
+            "message" => "user register successfuly!",
+            "data" => $user,
+        ], 201);
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json([
-                'status' => 'failed',
-                'message' => 'error',
-                'error' => $e->getMessage(),
+                "status" => "failed",
+                "message" => "failed to register due to invalid data!",
+                "error" => $e->getMessage(),
             ], 422);
-        } catch (\Exception $e) {
+        } catch (\Exception $e){
             return response()->json([
-                'status' => 'failed',
-                'error' => $e->getMessage(),
+                "status" => "failed",
+                "message" => "failed to register due to an error!",
+                "error" => $e->getMessage(),
             ], 500);
         }
     }
@@ -74,19 +65,12 @@ class AuthController extends Controller
                 'password' => 'required|string',
             ]);
 
-            $user = User::where('email', $request->email)->first();
+            $user = $this->authService->authinticate($request->email, $request->password);
 
             if (!$user) {
                 return response()->json([
                     'status' => 'failed',
-                    'message' => 'email is not found check and try again!',
-                ], 401);
-            }
-
-            if (!Hash::check($request->password, $user->password)) {
-                return response()->json([
-                    'status' => 'failed',
-                    'message' => 'password is wrong',
+                    'message' => 'invalid credentials (email or password).',
                 ], 401);
             }
 
@@ -97,54 +81,27 @@ class AuthController extends Controller
                     'message' => 'user logged in successfuly',
                     'user' => $user,
                     'token' => $token,
-                    // 'otp' => Cache::get('user_otp'),
-                ], 201);
+                ], 200);
             }
 
             $otp = $user->otp;
 
-            if ($otp) {
-                if ($otp->isExpired()) {
-                    $otp->delete();
-                    $myOtp = rand(100000, 999999);
-                    Log::debug("my otp is: $myOtp");
-                    Cache::put('user_otp', "$myOtp");
-                    $hashed_otp = Hash::make($myOtp);
-
-                    $newOtp = new OtpCodeController();
-                    $newOtp->newOtp($user->id, $hashed_otp, Carbon::now()->addMinute(15));
-                    $user->sendEmailVerificationNotification();
-                    return response()->json([
-                        "status" => "failed",
-                        "type" => "verify-otp",
-                        "messages" => "you should verify your account, before signing in!",
-                        "data" => $otp,
-                    ]);
-                }
-
+            if($otp && !$otp->isExpired()){
                 return response()->json([
                     "status" => "failed",
                     "type" => "use_old_otp",
-                    "message" => "you can use your latest otp send to you by your email",
+                    "message" => "user the otp that we send to you before!",
                 ]);
             }
 
-            if (!$otp) {
-                $myOtp = rand(100000, 999999);
-                Log::debug("my otp is: $myOtp");
-                Cache::put('user_otp', "$myOtp");
-                $hashed_otp = Hash::make($myOtp);
+            $this->authService->generateAndStoreOtp($user);
 
-                $newOtp = new OtpCodeController();
-                $newOtp->newOtp($user->id, $hashed_otp, Carbon::now()->addMinute(15));
-                $user->sendEmailVerificationNotification();
-                return response()->json([
-                    "status" => "failed",
-                    "type" => "verify-otp",
-                    "messages" => "you should verify your account, before signing in!",
-                    "data" => $otp,
-                ]);
-            }
+            return response()->json([
+                "status" => "failed",
+                "type" => "verify_otp",
+                "message" => "we send an otp to your email, please verify to get access!",
+            ], 403);
+            
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json([
                 'status' => 'failed',

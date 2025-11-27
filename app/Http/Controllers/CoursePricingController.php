@@ -18,9 +18,9 @@ class CoursePricingController extends BaseCrudController
             "discount_expires_at" => "nullable|date|after_or_equal:today",
         ];
         $this->editValidationRules = [
-            "course_id" => "required|integer|exists:courses,course_id",
-            "price" => "required|numeric|min:0",
-            "is_free" => "required|boolean",
+            "course_id" => "sometimes|required|integer|exists:courses,course_id",
+            "price" => "sometimes|required|numeric|min:0",
+            "is_free" => "sometimes|required|boolean",
             "discount_price" => "nullable|numeric|min:0",
             "discount_expires_at" => "nullable|date|after_or_equal:today",
         ];

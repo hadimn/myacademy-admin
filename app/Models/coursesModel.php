@@ -34,6 +34,17 @@ class coursesModel extends Model
 
     public function section()
     {
-        return $this->hasMany(SectionsModel::class, 'section_id');
+        return $this->hasMany(SectionsModel::class, 'course_id', 'course_id');
+    }
+
+
+    // make the relation to get all lessons related to specific course.
+    public function lessons()
+    {
+        // This creates a proper relationship that can be eager loaded
+        return $this->hasMany(LessonsModel::class, 'course_id', 'course_id')
+            ->whereHas('unit.section', function ($query) {
+                $query->where('course_id', $this->course_id);
+            });
     }
 }

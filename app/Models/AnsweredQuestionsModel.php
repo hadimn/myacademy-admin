@@ -24,4 +24,8 @@ class AnsweredQuestionsModel extends Model
         "earned_points" => 0,
         "is_passed" => false,
     ];
+
+    public function users(){
+        return $this->hasMany(User::class, 'id', 'user_id');
+    }
 }
