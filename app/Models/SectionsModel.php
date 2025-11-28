@@ -62,4 +62,8 @@ class SectionsModel extends Model
     {
         return $this->hasMany(UnitsModel::class, 'section_id', 'section_id');
     }
+
+    public function userProgress(){
+        return $this->hasMany(UserProgressModel::class, 'section_id', 'section_id');
+    }
 }

@@ -44,6 +44,9 @@ class UserProgressModel extends Model
 
     protected $fillable = [
         'user_id',
+        'course_id',
+        'section_id',
+        'unit_id',
         'lesson_id',
         'is_completed',
         'time_spent',
@@ -54,6 +57,9 @@ class UserProgressModel extends Model
 
     protected $casts = [
         'user_id' => 'integer',
+        'course_id' => 'integer',
+        'section_id' => 'integer',
+        'unit_id' => 'integer',
         'lesson_id' => 'integer',
         'is_completed' => 'boolean',
         'time_spent' => 'integer',
@@ -65,6 +71,18 @@ class UserProgressModel extends Model
     public function user()
     {
         return $this->belongsTo(User::class, 'user_id', 'id');
+    }
+
+    public function course(){
+        return $this->belongsTo(coursesModel::class, 'course_id', 'course_id');   
+    }
+
+    public function section(){
+        return $this->belongsTo(SectionsModel::class, 'section_id', 'section_id');
+    }
+
+    public function unit(){
+        return $this->belongsTo(UnitsModel::class, 'unit_id', 'unit_id');
     }
 
     public function lesson()

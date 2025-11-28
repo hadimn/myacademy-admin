@@ -19,6 +19,9 @@ class UserProgressController extends BaseCrudController
         $this->resourceName = 'User Progress';
         $this->validationRules = [
             'user_id' => 'required|integer|exists:users,id',
+            'course_id' => 'required|integer|exists:courses,course_id',
+            'section_id' => 'required|integer|exists:sections,section_id',
+            'unit_id' => 'required|integer|exists:units,unit_id',
             'lesson_id' => 'required|integer|exists:lessons,lesson_id',
             'is_completed' => 'nullable|boolean',
             'time_spent' => 'nullable|integer|min:0',
@@ -118,9 +121,16 @@ class UserProgressController extends BaseCrudController
             }
 
             // 6️⃣ Fetch/Create user progress for THIS specific lesson (from the question)
+            // UPDATED: Now including course_id, section_id, and unit_id
             $userProgress = UserProgressModel::firstOrCreate(
-                ['user_id' => Auth::id(), 'lesson_id' => $currentLesson->lesson_id],
                 [
+                    'user_id' => Auth::id(),
+                    'lesson_id' => $currentLesson->lesson_id
+                ],
+                [
+                    'course_id' => $currentCourse->course_id,
+                    'section_id' => $currentSection->section_id,
+                    'unit_id' => $currentUnit->unit_id,
                     'points' => 0,
                     'is_completed' => false,
                     'time_spent' => 0,
@@ -190,10 +200,14 @@ class UserProgressController extends BaseCrudController
                     $nextType = 'lesson';
 
                     // Create progress record for next lesson (user can access it now)
+                    // UPDATED: Now including course_id, section_id, and unit_id
                     UserProgressModel::firstOrCreate([
                         'user_id' => Auth::id(),
                         'lesson_id' => $nextLesson->lesson_id
                     ], [
+                        'course_id' => $currentCourse->course_id,
+                        'section_id' => $currentSection->section_id,
+                        'unit_id' => $currentUnit->unit_id,
                         'points' => 0,
                         'is_completed' => false,
                         'time_spent' => 0,
@@ -213,10 +227,14 @@ class UserProgressController extends BaseCrudController
                         $nextType = 'unit';
 
                         if ($nextStep) {
+                            // UPDATED: Now including course_id, section_id, and unit_id
                             UserProgressModel::firstOrCreate([
                                 'user_id' => Auth::id(),
                                 'lesson_id' => $nextStep->lesson_id
                             ], [
+                                'course_id' => $currentCourse->course_id,
+                                'section_id' => $nextUnit->section_id, // Use the new unit's section_id
+                                'unit_id' => $nextUnit->unit_id, // Use the new unit's unit_id
                                 'points' => 0,
                                 'is_completed' => false,
                                 'time_spent' => 0,
@@ -242,10 +260,14 @@ class UserProgressController extends BaseCrudController
                                 $nextType = 'section';
 
                                 if ($nextStep) {
+                                    // UPDATED: Now including course_id, section_id, and unit_id
                                     UserProgressModel::firstOrCreate([
                                         'user_id' => Auth::id(),
                                         'lesson_id' => $nextStep->lesson_id
                                     ], [
+                                        'course_id' => $currentCourse->course_id,
+                                        'section_id' => $nextSection->section_id, // Use the new section's section_id
+                                        'unit_id' => $firstUnitNextSection->unit_id, // Use the new unit's unit_id
                                         'points' => 0,
                                         'is_completed' => false,
                                         'time_spent' => 0,

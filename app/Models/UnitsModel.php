@@ -34,4 +34,8 @@ class UnitsModel extends Model
     {
         return $this->hasMany(LessonsModel::class, 'unit_id', 'unit_id');
     }
+
+    public function userProgress(){
+        return $this->hasMany(UserProgressModel::class, 'lesson_id', 'lesson_id');
+    }
 }

@@ -43,11 +43,15 @@ class LessonsModel extends Model
 
     public function unit()
     {
-        return $this->belongsTo(UnitsModel::class, 'unit_id');
+        return $this->belongsTo(UnitsModel::class, 'unit_id', 'unit_id');
     }
 
     public function questions()
     {
-        return $this->hasMany(QuestionsModel::class, 'lesson_id');
+        return $this->hasMany(QuestionsModel::class, 'lesson_id', 'lesson_id');
+    }
+
+    public function userProgress(){
+        return $this->hasMany(UserProgressModel::class, 'lesson_id', 'lesson_id');
     }
 }
