@@ -3,6 +3,7 @@
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Support\Facades\Route;
 use Laravel\Sanctum\Http\Middleware\CheckAbilities;
 use Laravel\Sanctum\Http\Middleware\CheckForAnyAbility;
 
@@ -12,6 +13,29 @@ return Application::configure(basePath: dirname(__DIR__))
         api: __DIR__ . '/../routes/api.php',
         commands: __DIR__ . '/../routes/console.php',
         health: '/up',
+        using: function (Application $app) { // The closure now uses the standard Route:: facade
+            
+            // 1. Load the default WEB routes
+            Route::middleware('web')
+                ->group(base_path('routes/web.php'));
+
+            // 2. Load the default API routes (Shared/Public)
+            Route::middleware('api') // Uses the 'api' middleware group (rate-limiting, stateless)
+                ->prefix('api')
+                ->group(base_path('routes/api.php'));
+            
+            // 3. Load the dedicated USER API routes
+            Route::middleware('api')
+                ->prefix('api/user') 
+                ->name('api.user.')
+                ->group(base_path('routes/user_api.php'));
+
+            // 4. Load the dedicated ADMIN API routes
+            Route::middleware('api')
+                ->prefix('api/admin')
+                ->name('api.admin.')
+                ->group(base_path('routes/admin_api.php'));
+        }
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
@@ -20,6 +44,4 @@ return Application::configure(basePath: dirname(__DIR__))
             'ability' => CheckForAnyAbility::class,
         ]);
     })
-    ->withExceptions(function (Exceptions $exceptions): void {
-        //
-    })->create();
+    ->withExceptions(function (Exceptions $exceptions): void {})->create();

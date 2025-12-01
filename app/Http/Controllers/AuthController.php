@@ -75,7 +75,7 @@ class AuthController extends Controller
             }
 
             if ($user->hasVerifiedEmail()) {
-                $token = $user->createToken('auth_token', ['user-access'])->plainTextToken;
+                $token = $user->createToken('auth_token', ['user-access'], Carbon::now()->addDays(1))->plainTextToken;
                 return response()->json([
                     'status' => 'success',
                     'message' => 'user logged in successfuly',
