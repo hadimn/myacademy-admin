@@ -55,7 +55,7 @@ class BadgesController extends BaseCrudController
                 'count' => $badges->count()
             ]);
         } catch (\Exception $e) {
-            return $this->handleError($e, "Failed to retrieve user badges");
+            return $this->errorResponse($e, "Failed to retrieve user badges");
         }
     }
 
@@ -80,7 +80,7 @@ class BadgesController extends BaseCrudController
                 'count' => count($newBadges)
             ]);
         } catch (\Exception $e) {
-            return $this->handleError($e, "Failed to check for new badges");
+            return $this->errorResponse($e, "Failed to check for new badges");
         }
     }
 
@@ -110,7 +110,7 @@ class BadgesController extends BaseCrudController
                 'data' => $progress
             ]);
         } catch (\Exception $e) {
-            return $this->handleError($e, "Failed to retrieve badge progress");
+            return $this->errorResponse($e, "Failed to retrieve badge progress");
         }
     }
 
@@ -135,7 +135,7 @@ class BadgesController extends BaseCrudController
                 'data' => $progress
             ]);
         } catch (\Exception $e) {
-            return $this->handleError($e, "Failed to retrieve all badge progress");
+            return $this->errorResponse($e, "Failed to retrieve all badge progress");
         }
     }
 
@@ -174,7 +174,7 @@ class BadgesController extends BaseCrudController
                 ]
             ]);
         } catch (\Exception $e) {
-            return $this->handleError($e, "Failed to retrieve available badges");
+            return $this->errorResponse($e, "Failed to retrieve available badges");
         }
     }
 
@@ -202,7 +202,7 @@ class BadgesController extends BaseCrudController
                 'count' => $badges->count()
             ]);
         } catch (\Exception $e) {
-            return $this->handleError($e, "Failed to retrieve badges by type");
+            return $this->errorResponse($e, "Failed to retrieve badges by type");
         }
     }
 }

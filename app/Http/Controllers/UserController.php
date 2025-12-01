@@ -5,14 +5,15 @@ namespace App\Http\Controllers;
 use App\Models\OtpCodes;
 use App\Models\User;
 use App\Notifications\AccountVerified;
+use App\Traits\ApiResponseTrait;
 use Carbon\Carbon;
 use Illuminate\Auth\Events\Verified;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Symfony\Component\HttpFoundation\Response;
 
 class UserController extends BaseCrudController
 {
-
     public function __construct()
     {
         $this->model = User::class;
@@ -36,20 +37,22 @@ class UserController extends BaseCrudController
         try {
             $user = $request->user();
             if (!$user) {
-                return response()->json([
-                    "status" => "fail",
-                    "message" => "user is unauthinticated",
-                ], 401);
+                return $this->errorResponse(
+                    "unauthinticated",
+                    Response::HTTP_INTERNAL_SERVER_ERROR,
+                );
             }
-            return response()->json([
-                "status" => "ok",
-                "data" => $user,
-            ], 201);
+            return $this->successResponse(
+                $user,
+                "user $user->name details retrieved successfuly!",
+                Response::HTTP_OK,
+            );
         } catch (\Exception $e) {
-            return response()->json([
-                "status" => 'fail',
-                "error" => $e->getMessage(),
-            ], 500);
+            return $this->errorResponse(
+                "failed to retrieve user's details due to an error",
+                Response::HTTP_INTERNAL_SERVER_ERROR,
+                [$e->getMessage()],
+            );
         }
     }
 
@@ -59,10 +62,10 @@ class UserController extends BaseCrudController
             $user = $request->user();
 
             if (!$user) {
-                return response()->json([
-                    "status" => "ok",
-                    "message" => "user is not Authinticated",
-                ]);
+                return $this->errorResponse(
+                    "unauthinticated",
+                    Response::HTTP_INTERNAL_SERVER_ERROR,
+                );
             }
 
             $request->validate([
@@ -77,24 +80,22 @@ class UserController extends BaseCrudController
 
             $user->save();
 
-            return response()->json([
-                "status" => "success",
-                "message" => "user updated successfully",
-                "data" => $user,
-                "currentData" => $request->user(),
-            ], 201);
+            return $this->successResponse(
+                $user,
+                "$user->name's details has been updated successfuly!",
+                Response::HTTP_CREATED,
+            );
         } catch (\Illuminate\Validation\ValidationException $e) {
-            return response()->json([
-                "status" => "failed",
-                "message" => "non valid data, please check what is wrong with the format",
-                "error" => $e->getMessage(),
-            ], 401);
+            return $this->validationErrorResponse(
+                [$e->getMessage()],
+                "failed due to an invalid inputs!",
+            );
         } catch (\Exception $e) {
-            return response()->json([
-                "status" => "failed",
-                "message" => "failed to update user details",
-                "error" => $e->getMessage(),
-            ], 500);
+            return $this->errorResponse(
+                "failed due to an errors!",
+                Response::HTTP_INTERNAL_SERVER_ERROR,
+                [$e->getMessage()],
+            );
         }
     }
 
@@ -104,7 +105,11 @@ class UserController extends BaseCrudController
 
         // Check if already verified
         if ($user->hasVerifiedEmail()) {
-            return response()->json(['message' => 'Email already verified.'], 200);
+            return $this->successResponse(
+                null,
+                "Email already verified!",
+                Response::HTTP_OK,
+            );
         }
 
         $hashedOtp = OtpCodes::where('user_id', $user->id)
@@ -113,17 +118,15 @@ class UserController extends BaseCrudController
             ->first();
 
         if (!$hashedOtp) {
-            return response()->json([
-                "status" => "failed",
-                "message" => "OTP not found or expired.",
-            ], 404);
+            return $this->errorResponse(
+                "Otp not found or expired!",
+            );
         }
 
         if (!Hash::check($otp, $hashedOtp->hashed_otp)) {
-            return response()->json([
-                "status" => "failed",
-                "message" => "you entered wrong otp, please try again!",
-            ]);
+            return $this->errorResponse(
+                "You used wrong otp, please check and try again!",
+            );
         }
 
         // Mark as verified
@@ -132,9 +135,10 @@ class UserController extends BaseCrudController
         $hashedOtp->save();
         event(new Verified($user));
         $user->notify(new AccountVerified());
-        return response()->json([
-            'message' => 'Email verified successfully.',
-            "data" => $hashedOtp,
-        ], 200);
+        return $this->successResponse(
+            $hashedOtp,
+            "Email verified successfuly!",
+            Response::HTTP_OK,
+        );
     }
 }

@@ -16,9 +16,14 @@ class LeaderboardService
             ->limit(10)
             ->get()
             ->map(function ($item, $index) {
-                $itemArray = $item->toArray();
-                $itemArray['order'] = $index + 1;
-                return $itemArray;
+                $userName = $item->users ? $item->users[0]->name : null;
+                return [
+                    'Rank' => $index + 1, // Key is placed first
+                    'user_id' => $item->user_id,
+                    'username' => $userName,
+                    // 'user' => $item->users, // Include the loaded user relationship
+                    'total_points' => (int) $item->total_points, // Ensure total_points is cast to int
+                ];
             });
 
         return $answeredQuestions->toArray();
@@ -32,9 +37,14 @@ class LeaderboardService
             ->orderByDesc('total_points')
             ->get()
             ->map(function ($item, $index) {
-                $itemArray = $item->toArray();
-                $itemArray['order'] = $index + 1;
-                return $itemArray;
+                $userName = $item->users ? $item->users[0]->name : null;
+                return [
+                    'Rank' => $index + 1, // Key is placed first
+                    'user_id' => $item->user_id,
+                    'username' => $userName,
+                    // 'user' => $item->users, // Include the loaded user relationship
+                    'total_points' => (int) $item->total_points, // Ensure total_points is cast to int
+                ];
             });
 
         return $answeredQuestions->toArray();

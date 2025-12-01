@@ -4,10 +4,14 @@ namespace App\Http\Controllers;
 
 use App\Services\StreakService;
 use App\Services\StreakReminderService;
+use App\Traits\ApiResponseTrait;
 use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\Response;
 
 class StreakController extends Controller
 {
+    use ApiResponseTrait;
+
     public function __construct(
         private StreakService $streakService,
         private StreakReminderService $reminderService
@@ -19,10 +23,11 @@ class StreakController extends Controller
         
         $streakInfo = $this->streakService->getStreakInfo($user);
 
-        return response()->json([
-            'status' => 'success',
-            'data' => $streakInfo,
-        ]);
+        return $this->successResponse(
+            $streakInfo,
+            "successfully retreived" . $user->name . "'s streak info!",
+            Response::HTTP_OK,
+        );
     }
 
     /**
@@ -35,20 +40,20 @@ class StreakController extends Controller
         $success = $this->reminderService->sendReminderToSpecificUser($user);
         
         if ($success) {
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Streak reminder sent to your email!',
-                'data' => [
+            return $this->successResponse(
+                [
                     'current_streak' => $user->current_streak,
                     'longest_streak' => $user->longest_streak,
-                ]
-            ]);
+                ],
+                "Streak reminder has been sent to your email!",
+                Response::HTTP_OK,
+            );
         }
         
-        return response()->json([
-            'status' => 'error',
-            'message' => 'Failed to send streak reminder. Please try again.',
-        ], 500);
+        return $this->errorResponse(
+            'Failed to send streak reminder. Please try again.',
+            Response::HTTP_INTERNAL_SERVER_ERROR,
+        );
     }
 
     /**
@@ -64,12 +69,12 @@ class StreakController extends Controller
         
         // Update streak to trigger forgiveness logic
         $this->streakService->updateStreak($user);
-        
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Forgiveness scenario tested. Check your email for forgiveness notification.',
-            'data' => $this->streakService->getStreakInfo($user)
-        ]);
+
+        return $this->successResponse(
+            $this->streakService->getStreakInfo($user),
+            'Forgiveness scenario tested. Check your email for forgiveness notification.',
+            Response::HTTP_OK,
+        );
     }
 
     /**
@@ -85,11 +90,11 @@ class StreakController extends Controller
         
         // Update streak to trigger broken streak logic
         $this->streakService->updateStreak($user);
-        
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Broken streak scenario tested. Check your email for streak reset notification.',
-            'data' => $this->streakService->getStreakInfo($user)
-        ]);
+
+        $this->successResponse(
+            $this->streakService->getStreakInfo($user),
+            'Broken streak scenario tested. Check your email for streak reset notification.',
+            Response::HTTP_OK,
+        );
     }
 }

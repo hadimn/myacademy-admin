@@ -2,9 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
 use App\Services\LeaderboardService;
-use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\Response;
 
 class LeaderboardController extends BaseCrudController
 {
@@ -18,17 +17,17 @@ class LeaderboardController extends BaseCrudController
     {
         try {
             $topusers = $this->leaderboardService->getTop10UsersByPoints();
-            return response()->json([
-                "status" => "success",
-                "message" => "retrieved successfuly top 10 users",
-                "data" => $topusers,
-            ]);
+            return $this->successResponse(
+                $topusers,
+                "retrieved successfuly top 10 users",
+                Response::HTTP_OK,
+            );
         } catch (\Exception $e) {
-            return response()->json([
-                "status" => "failed",
-                "message" => "faied due to an error!",
-                "error" => $e->getMessage(),
-            ]);
+            return $this->errorResponse(
+                "failed due to an error!",
+                Response::HTTP_INTERNAL_SERVER_ERROR,
+                [$e->getMessage()],
+            );
         }
     }
 
@@ -36,17 +35,17 @@ class LeaderboardController extends BaseCrudController
     {
         try {
             $allUsersPoints = $this->leaderboardService->getAllTopUsersByPoint();
-            return response()->json([
-                "status" => "success",
-                "message" => "all top users retrieved successfully!",
-                "data" => $allUsersPoints,
-            ]);
+            return $this->successResponse(
+                $allUsersPoints,
+                "all top users retrieved successfully!",
+                Response::HTTP_OK,
+            );
         } catch (\Exception $e) {
-            return response()->json([
-                "status" => "failed",
-                "message" => "faied due to an error!",
-                "error" => $e->getMessage(),
-            ]);
+            return $this->errorResponse(
+                "faied due to an error!",
+                Response::HTTP_INTERNAL_SERVER_ERROR,
+                [$e->getMessage()],
+            );
         }
     }
 }

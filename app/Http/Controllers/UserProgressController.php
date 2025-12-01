@@ -10,6 +10,7 @@ use App\Models\UserBadgesModel;
 use App\Models\UserProgressModel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Symfony\Component\HttpFoundation\Response;
 
 class UserProgressController extends BaseCrudController
 {
@@ -53,7 +54,10 @@ class UserProgressController extends BaseCrudController
             // 2️⃣ Find question
             $question = QuestionsModel::find($questionId);
             if (!$question) {
-                return response()->json(['status' => 'failed', 'message' => 'Question not found']);
+                return $this->errorResponse(
+                    "Question not found!",
+                    Response::HTTP_BAD_REQUEST,
+                );
             }
 
             $userAnswer = json_decode($request->correct_answer, true);
@@ -61,17 +65,21 @@ class UserProgressController extends BaseCrudController
 
             // 3️⃣ Check answer correctness
             if ($userAnswer[0] !== $correctAnswer[0]) {
-                return response()->json([
-                    'status' => 'failed',
-                    'message' => "The answer '{$userAnswer[0]}' is incorrect",
-                    'explanation' => $question->explanation,
-                ]);
+                return $this->successResponse(
+                    [
+                        "explanation" => $question->explanation,
+                    ],
+                    "The answer '{$userAnswer[0]}' is incorrect!",
+                );
             }
 
             // 4️⃣ Get the lesson context from the question itself
             $currentLesson = $question->lesson;
             if (!$currentLesson) {
-                return response()->json(['status' => 'failed', 'message' => 'Lesson not found for this question']);
+                return $this->errorResponse(
+                    "Lesson not found for this question!",
+                    Response::HTTP_BAD_REQUEST,
+                );
             }
 
             $currentUnit = $currentLesson->unit;
@@ -101,7 +109,7 @@ class UserProgressController extends BaseCrudController
             // If there's an unanswered question that's NOT the current question, block access
             if ($firstUnansweredQuestion && $firstUnansweredQuestion->questions_id != $questionId) {
                 return response()->json([
-                    'status' => 'failed',
+                    'status' => false,
                     'message' => "Please complete question #{$firstUnansweredQuestion->order} first in this lesson",
                     'data' => [
                         'lesson_context' => [
@@ -144,10 +152,8 @@ class UserProgressController extends BaseCrudController
             );
 
             if ($answeredQuestion->is_passed) {
-                return response()->json([
-                    'status' => 'success',
-                    'message' => 'You have already solved this question!',
-                    'data' => [
+                return $this->successResponse(
+                    [
                         'answered_question' => $answeredQuestion,
                         'question' => $question,
                         'lesson_context' => [
@@ -156,8 +162,10 @@ class UserProgressController extends BaseCrudController
                             'unit' => $currentUnit->title,
                             'lesson' => $currentLesson->title,
                         ],
-                    ]
-                ]);
+                    ],
+                    "You have already solved this question!",
+                    Response::HTTP_OK,
+                );
             }
 
             // 8️⃣ Award points and mark question as passed
@@ -290,7 +298,7 @@ class UserProgressController extends BaseCrudController
 
             // 🔟 Prepare base response
             $response = [
-                'status' => 'success',
+                'status' => true,
                 'message' => 'Correct! +10 points',
                 'data' => [
                     'lesson_context' => [
@@ -375,17 +383,16 @@ class UserProgressController extends BaseCrudController
 
             return response()->json($response);
         } catch (\Illuminate\Validation\ValidationException $e) {
-            return response()->json([
-                "status" => "failed",
-                "message" => "Failed due to invalid inputs",
-                "error" => $e->getMessage(),
-            ]);
+            return $this->validationErrorResponse(
+                [$e->getMessage()],
+                "failed due to invalid inputs!",
+            );
         } catch (\Exception $e) {
-            return response()->json([
-                "status" => "failed",
-                "message" => "Failed due to an error",
-                "error" => $e->getMessage(),
-            ]);
+            return $this->errorResponse(
+                "failed due to an error!",
+                Response::HTTP_BAD_GATEWAY,
+                [$e->getMessage(),],
+            );
         }
     }
 }

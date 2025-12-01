@@ -2,12 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Traits\ApiResponseTrait;
 use Illuminate\Http\Request;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Storage;
+use Symfony\Component\HttpFoundation\Response;
 
 class BaseCrudController extends Controller
 {
+    use ApiResponseTrait;
+
     protected $model;
     protected $validationRules = [];
     protected $editValidationRules = [];
@@ -19,13 +22,17 @@ class BaseCrudController extends Controller
         try {
             $data = $this->model::all();
 
-            return response()->json([
-                'status' => 'success',
-                'message' => "All {$this->resourceName}s retrieved successfully",
-                'data' => $data,
-            ]);
+            return $this->successResponse(
+                $data,
+                "All {$this->resourceName}s retrieved successfully",
+                Response::HTTP_OK,
+            );
         } catch (\Exception $e) {
-            return $this->handleError($e, "Failed to retrieve {$this->resourceName}");
+            return $this->errorResponse(
+                "Failed to retrieve {$this->resourceName}",
+                Response::HTTP_INTERNAL_SERVER_ERROR,
+                [$e->getMessage(),],
+            );
         }
     }
 
@@ -34,25 +41,28 @@ class BaseCrudController extends Controller
         try {
             $validated = $request->validate($this->validationRules);
 
-            $resource = $this->model::create($validated);
+            $resource = $this->model::make($validated);
 
             $this->handleFileUploads($request, $resource);
 
             $resource->save();
 
-            if (!$resource) {
-                return $this->errorResponse("Couldn't create {$this->resourceName} due to an error");
-            }
-
-            return response()->json([
-                'status' => 'success',
-                'message' => "{$this->resourceName} created successfully",
-                'data' => $resource,
-            ]);
+            return $this->successResponse(
+                $resource,
+                "{$this->resourceName} created successfully",
+                Response::HTTP_CREATED, //201
+            );
         } catch (\Illuminate\Validation\ValidationException $e) {
-            return $this->validationErrorResponse($e);
+            return $this->validationErrorResponse(
+                [$e->getMessage()],
+                "failed to store, due to an invalid input.",
+            );
         } catch (\Exception $e) {
-            return $this->handleError($e, "Failed to create {$this->resourceName}");
+            return $this->errorResponse(
+                "Failed to create {$this->resourceName}",
+                Response::HTTP_INTERNAL_SERVER_ERROR,
+                [$e->getMessage()],
+            );
         }
     }
 
@@ -65,13 +75,17 @@ class BaseCrudController extends Controller
                 return $this->notFoundResponse($id);
             }
 
-            return response()->json([
-                'status' => 'success',
-                'message' => "{$this->resourceName} with id: $id retrieved successfully",
-                'data' => $resource,
-            ]);
+            return $this->successResponse(
+                $resource,
+                "{$this->resourceName} with id: $id retrieved successfully",
+                Response::HTTP_OK,
+            );
         } catch (\Exception $e) {
-            return $this->handleError($e, "Failed to retrieve {$this->resourceName}");
+            return $this->errorResponse(
+                "Failed to retrieve {$this->resourceName}",
+                Response::HTTP_INTERNAL_SERVER_ERROR,
+                [$e->getMessage()],
+            );
         }
     }
 
@@ -96,15 +110,22 @@ class BaseCrudController extends Controller
 
             $resource->save();
 
-            return response()->json([
-                'status' => 'success',
-                'message' => "{$this->resourceName} updated successfully",
-                'data' => $resource,
-            ]);
+            return $this->successResponse(
+                $resource,
+                "{$this->resourceName} updated successfully",
+                Response::HTTP_OK,
+            );
         } catch (\Illuminate\Validation\ValidationException $e) {
-            return $this->validationErrorResponse($e);
+            return $this->validationErrorResponse(
+                [$e->getMessage()],
+                'failed to update due to an invalid inputs!',
+            );
         } catch (\Exception $e) {
-            return $this->handleError($e, "Failed to update {$this->resourceName}");
+            return $this->errorResponse(
+                "Failed to update {$this->resourceName}",
+                Response::HTTP_INTERNAL_SERVER_ERROR,
+                [$e->getMessage()],
+            );
         }
     }
 
@@ -118,16 +139,23 @@ class BaseCrudController extends Controller
             }
 
             if (!$resource->delete()) {
-                return $this->errorResponse("Failed to delete {$this->resourceName}");
+                return $this->errorResponse(
+                    "Failed to delete {$this->resourceName}",
+                    Response::HTTP_INTERNAL_SERVER_ERROR,
+                );
             }
 
-            return response()->json([
-                'status' => 'success',
-                'message' => "{$this->resourceName} deleted successfully",
-                'data' => $resource,
-            ]);
+            return $this->successResponse(
+                $resource,
+                "{$this->resourceName} deleted successfully",
+                Response::HTTP_NO_CONTENT,
+            );
         } catch (\Exception $e) {
-            return $this->handleError($e, "Failed to delete {$this->resourceName}");
+            return $this->errorResponse(
+                "Failed to delete {$this->resourceName}",
+                Response::HTTP_INTERNAL_SERVER_ERROR,
+                [$e->getMessage()],
+            );
         }
     }
 
@@ -152,23 +180,6 @@ class BaseCrudController extends Controller
         }
     }
 
-    protected function handleError(\Exception $e, $message)
-    {
-        return response()->json([
-            'status' => 'failed',
-            'message' => $message,
-            'error' => config('app.debug') ? $e->getMessage() : null,
-        ], 500);
-    }
-
-    protected function validationErrorResponse(\Illuminate\Validation\ValidationException $e)
-    {
-        return response()->json([
-            'status' => 'failed',
-            'message' => 'Validation failed',
-            'errors' => $e->errors(),
-        ], 422);
-    }
 
     protected function notFoundResponse($id)
     {
@@ -176,13 +187,5 @@ class BaseCrudController extends Controller
             'status' => 'failed',
             'message' => "{$this->resourceName} with id: $id not found",
         ], 404);
-    }
-
-    protected function errorResponse($message)
-    {
-        return response()->json([
-            'status' => 'failed',
-            'message' => $message,
-        ], 400);
     }
 }
