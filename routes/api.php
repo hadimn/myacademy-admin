@@ -51,8 +51,16 @@ Route::prefix('user')->group(function () {
             Route::post('{question_id}/answer/correct/', [UserProgressController::class, 'addPointsForCorrectAnswers']);
         });
 
-        // get streak info for auth users
-        Route::get('/streak', [StreakController::class, 'getStreakInfo']);
+        Route::prefix('streak')->group(function () {
+            // get streak info for auth users
+            Route::get('/', [StreakController::class, 'getStreakInfo']);
+            Route::post('send-test-reminder', [StreakController::class, 'sendTestReminder']);
+
+            // Test routes for streak scenarios (remove in production)
+            Route::post('test-forgiveness', [StreakController::class, 'testForgiveness']);
+            Route::post('test-broken', [StreakController::class, 'testBrokenStreak']);
+        });
+
 
         // User badge endpoints (using BadgesController)
         Route::get('badges/earned', [BadgesController::class, 'getUserBadges']);
@@ -63,19 +71,18 @@ Route::prefix('user')->group(function () {
 
         // Public/Admin badge endpoints
         Route::get('/badges/type/{type}', [BadgesController::class, 'getBadgesByType']);
-        
     });
 });
 
-Route::middleware(['auth:sanctum'])->group(function() {
-    Route::prefix('leaderboard')->group(function(){
+Route::middleware(['auth:sanctum'])->group(function () {
+    Route::prefix('leaderboard')->group(function () {
         Route::get('topusers', [LeaderboardController::class, 'getTopUsersByPoints']);
         Route::get('all', [LeaderboardController::class, 'getAllUsersByPoints']);
     });
 
-    Route::prefix('suggested')->group(function(){
-        Route::get('courses', [SuggestionsController::class,'getCoursesSuggestion']);
-        Route::get('lessons', [SuggestionsController::class,'getLessonsSuggestion']);
+    Route::prefix('suggested')->group(function () {
+        Route::get('courses', [SuggestionsController::class, 'getCoursesSuggestion']);
+        Route::get('lessons', [SuggestionsController::class, 'getLessonsSuggestion']);
     });
 });
 
