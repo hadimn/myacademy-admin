@@ -20,10 +20,11 @@ trait ApiResponseTrait
     protected function successResponse(
         array|object|null $data = null,
         ?string $message = null,
-        int $statusCode = Response::HTTP_OK
+        int $statusCode = Response::HTTP_OK,
+        bool $status = true,
     ): JsonResponse {
         return response()->json([
-            'status'  => true,
+            'status'  => $status,
             'message' => $message,
             'data'    => $data, 
         ], $statusCode);

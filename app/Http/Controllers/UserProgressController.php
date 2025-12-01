@@ -70,6 +70,8 @@ class UserProgressController extends BaseCrudController
                         "explanation" => $question->explanation,
                     ],
                     "The answer '{$userAnswer[0]}' is incorrect!",
+                    Response::HTTP_OK,
+                    false,
                 );
             }
 

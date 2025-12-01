@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AdminAuthController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BadgeController;
 use App\Http\Controllers\BadgesController;
@@ -39,14 +40,14 @@ Route::prefix('user')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->middleware(['auth:sanctum']);
 
 
-    Route::get('/', [UserController::class, 'index']);
-    Route::get('/{id}', [UserController::class, 'show'])->where('id', '[0-9]+');
-    Route::post('/create', [UserController::class, 'store']);
-    Route::post('/{id}/edit', [UserController::class, 'update'])->where('id', '[0-9]+');
-    Route::delete('/{id}/delete', [UserController::class, 'destroy'])->where('id', '[0-9]+');
-
     // correcting users answers route and adding points if answer is correct for each question.
-    Route::middleware(['auth:sanctum'])->group(function () {
+    Route::middleware(['auth:sanctum', 'ability:user-access'])->group(function () {
+        // profile endpoints
+        Route::prefix("profile")->group(function () {
+            Route::get('/details', [UserController::class, 'getUserDetails']);
+            Route::get('/details/edit', [userController::class, 'editUserDetails']);
+        });
+
         Route::prefix('question')->group(function () {
             Route::post('{question_id}/answer/correct/', [UserProgressController::class, 'addPointsForCorrectAnswers']);
         });
@@ -74,7 +75,7 @@ Route::prefix('user')->group(function () {
     });
 });
 
-Route::middleware(['auth:sanctum'])->group(function () {
+Route::middleware(['auth:sanctum', ['ability:admin-access', 'ability:user-access']])->group(function () {
     Route::prefix('leaderboard')->group(function () {
         Route::get('topusers', [LeaderboardController::class, 'getTopUsersByPoints']);
         Route::get('all', [LeaderboardController::class, 'getAllUsersByPoints']);
@@ -87,32 +88,33 @@ Route::middleware(['auth:sanctum'])->group(function () {
 });
 
 // authinticated admins routes
-Route::middleware(['auth:sanctum'])->group(function () {
-    // profile endpoints
-    Route::prefix("profile")->group(function () {
-        Route::get('/details', [UserController::class, 'getUserDetails']);
-        Route::get('/details/edit', [userController::class, 'editUserDetails']);
+Route::prefix('admin')->group(function () {
+    // --- 1. Admin Authentication Routes (Public Access) ---
+    Route::post('login', [AdminAuthController::class, 'login']);
+
+    Route::middleware(['auth:sanctum', 'ability:admin-access'])->group(function () {
+        Route::apiResource('users', UserController::class);
+
+        Route::apiResource('course', CoursesController::class);
+
+        Route::apiResource('section', SectionsController::class);
+
+        Route::apiResource('unit', UnitsController::class);
+
+        Route::apiResource('lesson', LessonsController::class);
+
+        Route::apiResource('question', QuestionsController::class);
+
+        Route::apiResource('enrollments', EnrollmentsController::class);
+
+        Route::apiResource('userbadge', UserBadgesController::class);
+
+        Route::apiResource('badge', BadgesController::class);
+
+        Route::apiResource('coursepricing', CoursePricingController::class);
+
+        Route::apiResource('userprogress', UserProgressController::class);
+
+        Route::apiResource('answeredquestion', QuestionsAnsweredController::class);
     });
-
-    Route::apiResource('course', CoursesController::class);
-
-    Route::apiResource('section', SectionsController::class);
-
-    Route::apiResource('unit', UnitsController::class);
-
-    Route::apiResource('lesson', LessonsController::class);
-
-    Route::apiResource('question', QuestionsController::class);
-
-    Route::apiResource('enrollments', EnrollmentsController::class);
-
-    Route::apiResource('userbadge', UserBadgesController::class);
-
-    Route::apiResource('badge', BadgesController::class);
-
-    Route::apiResource('coursepricing', CoursePricingController::class);
-
-    Route::apiResource('userprogress', UserProgressController::class);
-
-    Route::apiResource('answeredquestion', QuestionsAnsweredController::class);
 });

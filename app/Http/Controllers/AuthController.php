@@ -75,7 +75,7 @@ class AuthController extends Controller
             }
 
             if ($user->hasVerifiedEmail()) {
-                $token = $user->createToken('auth_token')->plainTextToken;
+                $token = $user->createToken('auth_token', ['user-access'])->plainTextToken;
                 return response()->json([
                     'status' => 'success',
                     'message' => 'user logged in successfuly',

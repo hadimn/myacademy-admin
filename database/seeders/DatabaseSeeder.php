@@ -31,6 +31,7 @@ class DatabaseSeeder extends Seeder
             CoursePricingSeeder::class,
             EnrollmentsSeeder::class,
             BadgesSeeder::class,
+            AdminSeeder::class,
             // UserBadgeSeeder::class,
             // UserProgressSeeder::class,
             // AnsweredQuestionsSeeder::class,
