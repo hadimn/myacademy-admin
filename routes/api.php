@@ -87,34 +87,34 @@ use Illuminate\Support\Facades\Route;
 //     });
 // });
 
-// authinticated admins routes
-Route::prefix('admin')->group(function () {
-    // --- 1. Admin Authentication Routes (Public Access) ---
-    Route::post('login', [AdminAuthController::class, 'login']);
+// // authinticated admins routes
+// Route::prefix('admin')->group(function () {
+//     // --- 1. Admin Authentication Routes (Public Access) ---
+//     Route::post('login', [AdminAuthController::class, 'login']);
 
-    Route::middleware(['auth:sanctum', 'ability:admin-access'])->group(function () {
-        Route::apiResource('users', UserController::class);
+//     Route::middleware(['auth:sanctum', 'ability:admin-access'])->group(function () {
+//         Route::apiResource('users', UserController::class);
 
-        Route::apiResource('course', CoursesController::class);
+//         Route::apiResource('course', CoursesController::class);
 
-        Route::apiResource('section', SectionsController::class);
+//         Route::apiResource('section', SectionsController::class);
 
-        Route::apiResource('unit', UnitsController::class);
+//         Route::apiResource('unit', UnitsController::class);
 
-        Route::apiResource('lesson', LessonsController::class);
+//         Route::apiResource('lesson', LessonsController::class);
 
-        Route::apiResource('question', QuestionsController::class);
+//         Route::apiResource('question', QuestionsController::class);
 
-        Route::apiResource('enrollments', EnrollmentsController::class);
+//         Route::apiResource('enrollments', EnrollmentsController::class);
 
-        Route::apiResource('userbadge', UserBadgesController::class);
+//         Route::apiResource('userbadge', UserBadgesController::class);
 
-        Route::apiResource('badge', BadgesController::class);
+//         Route::apiResource('badge', BadgesController::class);
 
-        Route::apiResource('coursepricing', CoursePricingController::class);
+//         Route::apiResource('coursepricing', CoursePricingController::class);
 
-        Route::apiResource('userprogress', UserProgressController::class);
+//         Route::apiResource('userprogress', UserProgressController::class);
 
-        Route::apiResource('answeredquestion', QuestionsAnsweredController::class);
-    });
-});
+//         Route::apiResource('answeredquestion', QuestionsAnsweredController::class);
+//     });
+// });

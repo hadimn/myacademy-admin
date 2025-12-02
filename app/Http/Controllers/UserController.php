@@ -32,6 +32,39 @@ class UserController extends BaseCrudController
         ];
     }
 
+    public function deleteUserById($id)
+    {
+        try {
+            // Find the user by ID
+            $user = User::find($id);
+
+            if (!$user) {
+                return response()->json([
+                    "status" => "failed",
+                    "message" => "User not found.",
+                ], 404);
+            }
+
+            // Optionally revoke all tokens before deleting
+            $user->tokens()->delete();
+
+            // Delete the user
+            $user->delete();
+
+            return response()->json([
+                "status" => "success",
+                "message" => "User deleted successfully.",
+                "deleted_user_id" => $id,
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                "status" => "failed",
+                "message" => "Failed to delete user.",
+                "error" => $e->getMessage(),
+            ], 500);
+        }
+    }
+
     public function getUserDetails(Request $request)
     {
         try {

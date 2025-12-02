@@ -5,15 +5,20 @@ namespace App\Http\Controllers;
 use App\Models\OtpCodes;
 use App\Models\User;
 use App\Services\AuthService;
+use App\Traits\ApiResponseTrait;
 use Carbon\Carbon;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
+use Symfony\Component\HttpFoundation\Response;
 
 class AuthController extends Controller
 {
+    use ApiResponseTrait;
+
     protected $authService;
     public function __construct(AuthService $authService)
     {
@@ -23,37 +28,38 @@ class AuthController extends Controller
     {
         try {
             $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users',
-            'password' => 'required|string|min:6|confirmed',
-        ]);
+                'name' => 'required|string|max:255',
+                'email' => 'required|email|unique:users',
+                'password' => 'required|string|min:6|confirmed',
+            ]);
 
-        $user = $this->authService->registerUser($request->only('name', 'email', 'password'));
+            $user = $this->authService->registerUser($request->only('name', 'email', 'password'));
 
-        if(!$user){
-            return response()->json([
-                "status" => "failed",
-                "message" => "can't register your account due to some errors!",
-            ], 500);
-        }
+            if (!$user) {
+                return $this->errorResponse(
+                    "can't register your account due to some errors!",
+                    Response::HTTP_INTERNAL_SERVER_ERROR, // 500
+                );
+            }
 
-        return response()->json([
-            "status" => "success",
-            "message" => "user register successfuly!",
-            "data" => $user,
-        ], 201);
+            return $this->successResponse(
+                $user,
+                "user registered successfuly!",
+                Response::HTTP_CREATED, // 201
+                true,
+            );
         } catch (\Illuminate\Validation\ValidationException $e) {
-            return response()->json([
-                "status" => "failed",
-                "message" => "failed to register due to invalid data!",
-                "error" => $e->getMessage(),
-            ], 422);
-        } catch (\Exception $e){
-            return response()->json([
-                "status" => "failed",
-                "message" => "failed to register due to an error!",
-                "error" => $e->getMessage(),
-            ], 500);
+            return $this->errorResponse(
+                "failed to register due to invalid data!",
+                Response::HTTP_UNPROCESSABLE_ENTITY,
+                [$e->getMessage()],
+            );
+        } catch (\Exception $e) {
+            return $this->errorResponse(
+                "failed to register due to an error!",
+                Response::HTTP_INTERNAL_SERVER_ERROR,
+                [$e->getMessage()],
+            );
         }
     }
 
@@ -68,117 +74,133 @@ class AuthController extends Controller
             $user = $this->authService->authinticate($request->email, $request->password);
 
             if (!$user) {
-                return response()->json([
-                    'status' => 'failed',
-                    'message' => 'invalid credentials (email or password).',
-                ], 401);
+                $this->errorResponse(
+                    'invalid credentials (email or password).',
+                    Response::HTTP_UNAUTHORIZED, // 500
+                );
             }
 
             if ($user->hasVerifiedEmail()) {
                 $token = $user->createToken('auth_token', ['user-access'], Carbon::now()->addDays(1))->plainTextToken;
-                return response()->json([
-                    'status' => 'success',
-                    'message' => 'user logged in successfuly',
-                    'user' => $user,
-                    'token' => $token,
-                ], 200);
+
+                return $this->successResponse(
+                    [
+                        "user" => $user,
+                        "token" => $token,
+                    ],
+                    'user logged in successfuly',
+                    Response::HTTP_OK, // 201
+                    true,
+                );
             }
 
             $otp = $user->otp;
 
-            if($otp && !$otp->isExpired()){
-                return response()->json([
-                    "status" => "failed",
-                    "type" => "use_old_otp",
-                    "message" => "user the otp that we send to you before!",
-                ]);
+            if ($otp && !$otp->isExpired()) {
+                return $this->successResponse(
+                    [
+                        "type" => "use_old_otp",
+                    ],
+                    "please, use the previous otp that we send to you before!",
+                    Response::HTTP_OK,
+                    false,
+                );
             }
 
             $this->authService->generateAndStoreOtp($user);
 
-            return response()->json([
-                "status" => "failed",
-                "type" => "verify_otp",
-                "message" => "we send an otp to your email, please verify to get access!",
-            ], 403);
-            
+            return $this->successResponse(
+                [
+                    "type" => "new_otp",
+                ],
+                "we send an otp to your email, please verify to get access!",
+                Response::HTTP_FORBIDDEN,
+                false,
+            );
         } catch (\Illuminate\Validation\ValidationException $e) {
-            return response()->json([
-                'status' => 'failed',
-                'message' => 'validation error',
-                'errors' => $e->getMessage(),
-            ], 422);
+            return $this->validationErrorResponse(
+                [$e->getMessage()],
+            );
         } catch (\Exception $e) {
-            return response()->json([
-                'status' => 'error',
-                'errors' => $e->getMessage(),
-            ], 500);
+            return $this->errorResponse(
+                "failed due to an error!",
+                Response::HTTP_INTERNAL_SERVER_ERROR,
+                [$e->getMessage()],
+            );
         }
     }
 
     public function logout(Request $request)
     {
         try {
-            // make sure that there an authinticated user
-            if (!$request->user()) {
-                return response()->json([
-                    "status" => "fail",
-                    "message" => "there is no user authinticated",
-                ]);
+            $user = Auth::user();
+
+            // User not logged in
+            if (!$user) {
+                return $this->errorResponse(
+                    "Can't logout, you must be logged in first!",
+                    Response::HTTP_UNAUTHORIZED
+                );
             }
 
-            // make sure there is a token valid or not
-            if (!$request->user()->currentAccessToken()) {
-                return response()->json([
-                    "status" => "fail",
-                    "message" => "there is no active token",
-                ]);
+            // No active token found
+            $token = $user->currentAccessToken();
+            if (!$token) {
+                return $this->errorResponse(
+                    "There is no active token!",
+                    Response::HTTP_BAD_REQUEST
+                );
             }
 
-            $request->user()->currentAccessToken()->delete();
+            // Revoke token
+            $token->delete();
 
-            return response()->json([
-                "status" => "success",
-                "message" => "user is logged out successfully",
-            ]);
+            return $this->successResponse(
+                null,
+                "User logged out successfully!",
+                Response::HTTP_NO_CONTENT // Best practice for logout
+            );
         } catch (\Exception $e) {
-            return response()->json([
-                "status" => "fail",
-                "error" => $e->getMessage(),
-            ]);
+            return $this->errorResponse(
+                "Failed to log out due to an internal error!",
+                Response::HTTP_INTERNAL_SERVER_ERROR,
+                [$e->getMessage()] // Optional: helps debugging
+            );
         }
     }
 
-    public function deleteUserById($id)
+
+    public function deleteMyAccount()
     {
         try {
-            // Find the user by ID
-            $user = User::find($id);
+            $user = Auth::user();
 
+            // Ensure user is authenticated
             if (!$user) {
-                return response()->json([
-                    "status" => "failed",
-                    "message" => "User not found.",
-                ], 404);
+                return $this->errorResponse(
+                    "You must be logged in to delete your account.",
+                    Response::HTTP_UNAUTHORIZED
+                );
             }
 
-            // Optionally revoke all tokens before deleting
+            // Delete all access tokens (logout everywhere)
             $user->tokens()->delete();
 
-            // Delete the user
+            // Delete the user account
             $user->delete();
 
-            return response()->json([
-                "status" => "success",
-                "message" => "User deleted successfully.",
-                "deleted_user_id" => $id,
-            ], 200);
+            return $this->successResponse(
+                null,
+                "Account deleted successfully.",
+                Response::HTTP_NO_CONTENT, // No content needed after deletion
+                true
+            );
         } catch (\Exception $e) {
-            return response()->json([
-                "status" => "failed",
-                "message" => "Failed to delete user.",
-                "error" => $e->getMessage(),
-            ], 500);
+            return $this->errorResponse(
+                "Failed to delete account.",
+                Response::HTTP_INTERNAL_SERVER_ERROR,
+                [$e->getMessage()] // Optional debug message
+            );
         }
     }
 }

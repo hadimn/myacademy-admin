@@ -6,6 +6,7 @@ use App\Models\BadgesModel;
 use App\Services\BadgeService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Symfony\Component\HttpFoundation\Response;
 
 class BadgesController extends BaseCrudController
 {
@@ -48,12 +49,15 @@ class BadgesController extends BaseCrudController
             $user = $request->user();
             $badges = $this->badgeService->getUserBadges($user);
 
-            return response()->json([
-                'status' => 'success',
-                'message' => 'User badges retrieved successfully',
-                'data' => $badges,
-                'count' => $badges->count()
-            ]);
+            return $this->successResponse(
+                [
+                    "badges" => $badges,
+                    "badges_count" => $badges->count(),
+                ],
+                "User badges rettieved successfuly",
+                Response::HTTP_OK,
+                true,
+            );
         } catch (\Exception $e) {
             return $this->errorResponse($e, "Failed to retrieve user badges");
         }
@@ -73,6 +77,15 @@ class BadgesController extends BaseCrudController
                 ? count($newBadges) . ' new badge' . (count($newBadges) > 1 ? 's' : '') . ' awarded!'
                 : 'No new badges at this time. Keep learning!';
 
+            return $this->successResponse(
+                [
+                    "new_badges" => $newBadges,
+                    "count" => count($newBadges),
+                ],
+                $message,
+                Response::HTTP_OK,
+                true,
+            );
             return response()->json([
                 'status' => 'success',
                 'message' => $message,

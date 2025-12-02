@@ -24,21 +24,26 @@ Route::post('login', [AdminAuthController::class, 'login']);
 
 Route::middleware(['auth:sanctum', 'ability:admin-access'])->group(function () {
 
+    Route::post('/new/account', [AdminAuthController::class, 'register']);
+    Route::post('logout', [AdminAuthController::class, 'logout']);
+
     Route::prefix('leaderboard')->group(function () {
         Route::get('all', [LeaderboardController::class, 'getAllUsersByPoints']);
     });
 
+    Route::delete('user/{id}/delete', [UserController::class, 'deleteUserById']);
+
     Route::apiResource('users', UserController::class);
 
-    Route::apiResource('course', CoursesController::class);
+    Route::apiResource('courses', CoursesController::class);
 
-    Route::apiResource('section', SectionsController::class);
+    Route::apiResource('sections', SectionsController::class);
 
-    Route::apiResource('unit', UnitsController::class);
+    Route::apiResource('units', UnitsController::class);
 
-    Route::apiResource('lesson', LessonsController::class);
+    Route::apiResource('lessons', LessonsController::class);
 
-    Route::apiResource('question', QuestionsController::class);
+    Route::apiResource('questions', QuestionsController::class);
 
     Route::apiResource('enrollments', EnrollmentsController::class);
 
