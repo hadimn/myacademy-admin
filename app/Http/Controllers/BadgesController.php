@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\BadgeResource;
 use App\Models\BadgesModel;
 use App\Services\BadgeService;
 use Illuminate\Http\Request;
@@ -16,6 +17,8 @@ class BadgesController extends BaseCrudController
     {
         $this->model = BadgesModel::class;
         $this->resourceName = "Badge";
+        $this->resourceClass = BadgeResource::class;
+        $this->searchableFields = ['name', 'description', 'type'];
         $this->validationRules = [
             'name' => 'required|string|max:255',
             'description' => 'required|string|min:6',

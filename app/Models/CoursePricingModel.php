@@ -13,7 +13,7 @@ use Illuminate\Database\Eloquent\Model;
  * @property \Illuminate\Support\Carbon|null $discount_expires_at
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
- * @property-read \App\Models\coursesModel $course
+ * @property-read \App\Models\CoursesModel $course
  * @method static \Illuminate\Database\Eloquent\Builder<static>|CoursePricingModel newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|CoursePricingModel newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|CoursePricingModel query()
@@ -54,6 +54,6 @@ class CoursePricingModel extends Model
 
     public function course()
     {
-        return $this->belongsTo(coursesModel::class, 'course_id', 'course_id');
+        return $this->belongsTo(CoursesModel::class, 'course_id', 'course_id');
     }
 }

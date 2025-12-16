@@ -3,7 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\CoursePricingModel;
-use App\Models\coursesModel;
+use App\Models\CoursesModel;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Faker\Factory as Faker;
@@ -18,7 +18,7 @@ class CoursePricingSeeder extends Seeder
         $faker = Faker::create();
 
         // 1. Get the IDs of all existing courses
-        $courseIds = coursesModel::pluck('course_id')->all();
+        $courseIds = CoursesModel::pluck('course_id')->all();
 
         if (empty($courseIds)) {
             echo "Skipping CoursePricingsSeeder: No courses found in the 'courses_models' table. Please ensure courses are seeded first.\n";

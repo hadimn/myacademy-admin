@@ -18,7 +18,7 @@ class BadgesSeeder extends Seeder
             [
                 'name' => '3-Day Streak',
                 'description' => 'Maintain a 3-day learning streak',
-                'icon' => '🔥',
+                'icon' => null,
                 'type' => 'streak',
                 'criteria' => ['days_required' => 3],
                 'points' => 50,
@@ -26,7 +26,7 @@ class BadgesSeeder extends Seeder
             [
                 'name' => '1-Week Streak',
                 'description' => 'Maintain a 7-day learning streak',
-                'icon' => '⚡',
+                'icon' => null,
                 'type' => 'streak',
                 'criteria' => ['days_required' => 7],
                 'points' => 100,
@@ -34,7 +34,7 @@ class BadgesSeeder extends Seeder
             [
                 'name' => '2-Week Streak',
                 'description' => 'Maintain a 14-day learning streak',
-                'icon' => '🌟',
+                'icon' => null,
                 'type' => 'streak',
                 'criteria' => ['days_required' => 14],
                 'points' => 200,
@@ -42,7 +42,7 @@ class BadgesSeeder extends Seeder
             [
                 'name' => '1-Month Streak',
                 'description' => 'Maintain a 30-day learning streak',
-                'icon' => '🎯',
+                'icon' => null,
                 'type' => 'streak',
                 'criteria' => ['days_required' => 30],
                 'points' => 500,
@@ -52,7 +52,7 @@ class BadgesSeeder extends Seeder
             [
                 'name' => 'First Course',
                 'description' => 'Complete your first course',
-                'icon' => '🎓',
+                'icon' => null,
                 'type' => 'course_completion',
                 'criteria' => ['courses_required' => 1],
                 'points' => 50,
@@ -60,7 +60,7 @@ class BadgesSeeder extends Seeder
             [
                 'name' => 'Course Explorer',
                 'description' => 'Complete 3 courses',
-                'icon' => '📖',
+                'icon' => null,
                 'type' => 'course_completion',
                 'criteria' => ['courses_required' => 3],
                 'points' => 150,
@@ -68,7 +68,7 @@ class BadgesSeeder extends Seeder
             [
                 'name' => 'Course Master',
                 'description' => 'Complete 5 courses',
-                'icon' => '🏆',
+                'icon' => null,
                 'type' => 'course_completion',
                 'criteria' => ['courses_required' => 5],
                 'points' => 300,
@@ -76,7 +76,7 @@ class BadgesSeeder extends Seeder
             [
                 'name' => 'Learning Champion',
                 'description' => 'Complete 10 courses',
-                'icon' => '👑',
+                'icon' => null,
                 'type' => 'course_completion',
                 'criteria' => ['courses_required' => 10],
                 'points' => 600,
@@ -86,7 +86,7 @@ class BadgesSeeder extends Seeder
             [
                 'name' => 'Points Collector',
                 'description' => 'Earn 100 points from correct answers',
-                'icon' => '⭐',
+                'icon' => null,
                 'type' => 'points',
                 'criteria' => ['points_required' => 100],
                 'points' => 25,
@@ -94,7 +94,7 @@ class BadgesSeeder extends Seeder
             [
                 'name' => 'Quick Learner',
                 'description' => 'Earn 500 points from correct answers',
-                'icon' => '🚀',
+                'icon' => null,
                 'type' => 'points',
                 'criteria' => ['points_required' => 500],
                 'points' => 100,
@@ -102,7 +102,7 @@ class BadgesSeeder extends Seeder
             [
                 'name' => 'Knowledge Seeker',
                 'description' => 'Earn 1000 points from correct answers',
-                'icon' => '💡',
+                'icon' => null,
                 'type' => 'points',
                 'criteria' => ['points_required' => 1000],
                 'points' => 250,
@@ -110,7 +110,7 @@ class BadgesSeeder extends Seeder
             [
                 'name' => 'Learning Expert',
                 'description' => 'Earn 2500 points from correct answers',
-                'icon' => '🧠',
+                'icon' => null,
                 'type' => 'points',
                 'criteria' => ['points_required' => 2500],
                 'points' => 500,
@@ -120,7 +120,7 @@ class BadgesSeeder extends Seeder
             [
                 'name' => 'First Lesson',
                 'description' => 'Complete your first lesson',
-                'icon' => '✅',
+                'icon' => null,
                 'type' => 'lesson_completion',
                 'criteria' => ['lessons_required' => 1],
                 'points' => 10,
@@ -128,7 +128,7 @@ class BadgesSeeder extends Seeder
             [
                 'name' => 'Lesson Explorer',
                 'description' => 'Complete 10 lessons',
-                'icon' => '📚',
+                'icon' => null,
                 'type' => 'lesson_completion',
                 'criteria' => ['lessons_required' => 10],
                 'points' => 75,
@@ -136,7 +136,7 @@ class BadgesSeeder extends Seeder
             [
                 'name' => 'Lesson Master',
                 'description' => 'Complete 25 lessons',
-                'icon' => '🎯',
+                'icon' => null,
                 'type' => 'lesson_completion',
                 'criteria' => ['lessons_required' => 25],
                 'points' => 200,
@@ -146,7 +146,7 @@ class BadgesSeeder extends Seeder
             [
                 'name' => 'Dedicated Learner',
                 'description' => 'Spend 1 hour learning',
-                'icon' => '⏰',
+                'icon' => null,
                 'type' => 'time_spent',
                 'criteria' => ['minutes_required' => 60],
                 'points' => 30,
@@ -154,7 +154,7 @@ class BadgesSeeder extends Seeder
             [
                 'name' => 'Marathon Learner',
                 'description' => 'Spend 5 hours learning',
-                'icon' => '🏃',
+                'icon' => null,
                 'type' => 'time_spent',
                 'criteria' => ['minutes_required' => 300],
                 'points' => 100,

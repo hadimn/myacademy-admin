@@ -4,7 +4,7 @@ namespace App\Traits;
 
 use Illuminate\Http\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
-    
+
 trait ApiResponseTrait
 {
     // ... (Existing successResponse and errorResponse methods) ...
@@ -26,7 +26,11 @@ trait ApiResponseTrait
         return response()->json([
             'status'  => $status,
             'message' => $message,
-            'data'    => $data, 
+            'data'    => $data,
+            "current_page" => 1,
+            "per_page" => 10,
+            "total" => 45,
+            "last_page" => 5
         ], $statusCode);
     }
 

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\UserprogressResource;
 use App\Models\AnsweredQuestionsModel;
 use App\Models\LessonsModel;
 use App\Models\QuestionsModel;
@@ -18,6 +19,7 @@ class UserProgressController extends BaseCrudController
     {
         $this->model = UserProgressModel::class;
         $this->resourceName = 'User Progress';
+        $this->resourceClass = UserprogressResource::class;
         $this->validationRules = [
             'user_id' => 'required|integer|exists:users,id',
             'course_id' => 'required|integer|exists:courses,course_id',

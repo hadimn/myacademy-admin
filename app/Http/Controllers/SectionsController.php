@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\SectionsResource;
 use App\Models\SectionsModel;
 use Illuminate\Http\Request;
 
@@ -11,6 +12,7 @@ class SectionsController extends BaseCrudController
     {
         $this->model = SectionsModel::class;
         $this->resourceName = "section";
+        $this->resourceClass = SectionsResource::class;
         $this->validationRules = [
             'course_id' => 'required|integer|exists:courses,course_id',
             'title' => 'required|string|max:255',

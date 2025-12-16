@@ -2,7 +2,7 @@
 
 namespace Database\Seeders;
 
-use App\Models\coursesModel;
+use App\Models\CoursesModel;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
@@ -28,7 +28,7 @@ class CoursesSeeder extends Seeder
         for ($i = 0; $i < 5; $i++) {
             $title = $faker->sentence(3, true);
 
-            coursesModel::create([
+            CoursesModel::create([
                 'title' => $title,
                 // Ensure the description is at least 26 characters long, as required by your validation
                 'description' => $faker->paragraph(rand(3, 5), true),

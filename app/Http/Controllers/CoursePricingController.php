@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\CoursePricingResource;
 use App\Models\CoursePricingModel;
 
 class CoursePricingController extends BaseCrudController
@@ -10,6 +11,7 @@ class CoursePricingController extends BaseCrudController
     {
         $this->model = CoursePricingModel::class;
         $this->resourceName = "Course Pricing";
+        $this->resourceClass = CoursePricingResource::class;
         $this->validationRules = [
             "course_id" => "required|integer|exists:courses,course_id",
             "price" => "required|numeric|min:0",

@@ -4,8 +4,9 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Storage;
 
-class coursesModel extends Model
+class CoursesModel extends Model
 {
     use HasFactory;
 
@@ -29,8 +30,6 @@ class coursesModel extends Model
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];
-
-
 
     public function sections()
     {

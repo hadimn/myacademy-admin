@@ -35,6 +35,11 @@ Route::middleware(['auth:sanctum', 'ability:admin-access'])->group(function () {
 
     Route::apiResource('users', UserController::class);
 
+
+    Route::apiResource('badges', BadgesController::class);
+
+    Route::apiResource('userprogress', UserProgressController::class);
+
     Route::apiResource('courses', CoursesController::class);
 
     Route::apiResource('sections', SectionsController::class);
@@ -49,11 +54,9 @@ Route::middleware(['auth:sanctum', 'ability:admin-access'])->group(function () {
 
     Route::apiResource('userbadge', UserBadgesController::class);
 
-    Route::apiResource('badge', BadgesController::class);
 
     Route::apiResource('coursepricing', CoursePricingController::class);
 
-    Route::apiResource('userprogress', UserProgressController::class);
 
     Route::apiResource('answeredquestion', QuestionsAnsweredController::class);
 });

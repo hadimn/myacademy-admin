@@ -74,7 +74,7 @@ class UserProgressModel extends Model
     }
 
     public function course(){
-        return $this->belongsTo(coursesModel::class, 'course_id', 'course_id');   
+        return $this->belongsTo(CoursesModel::class, 'course_id', 'course_id');   
     }
 
     public function section(){

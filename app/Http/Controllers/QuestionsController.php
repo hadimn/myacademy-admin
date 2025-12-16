@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\QuestionsResource;
 use App\Models\QuestionsModel;
 use App\Models\UserProgressModel;
 use Illuminate\Http\Request;
@@ -13,6 +14,7 @@ class QuestionsController extends BaseCrudController
     {
         $this->model = QuestionsModel::class;
         $this->resourceName = 'question';
+        $this->resourceClass = QuestionsResource::class;
         $this->validationRules = [
             "lesson_id" => "required|integer|exists:lessons,lesson_id",
             "title" => "required|string|max:255",

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\LessonsResource;
 use App\Models\LessonsModel;
 use Illuminate\Http\Request;
 
@@ -11,6 +12,7 @@ class LessonsController extends BaseCrudController
     {
         $this->model = LessonsModel::class;
         $this->resourceName = 'lesson';
+        $this->resourceClass = LessonsResource::class;
         $this->validationRules = [
             "unit_id" => "required|integer|exists:units,unit_id",
             "title" => "required|string|max:255",

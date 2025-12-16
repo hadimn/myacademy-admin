@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\EnrollmentsResource;
 use App\Models\EnrollmentsModel;
 
 class EnrollmentsController extends BaseCrudController
@@ -10,6 +11,7 @@ class EnrollmentsController extends BaseCrudController
     {
         $this->model = EnrollmentsModel::class;
         $this->resourceName = 'Enrollment';
+        $this->resourceClass = EnrollmentsResource::class;
         $this->validationRules = [
             "user_id"=>"required|integer|exists:users,id",
             "course_id" => "required|integer|exists:courses,course_id",

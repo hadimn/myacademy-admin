@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\UserResource;
 use App\Models\OtpCodes;
 use App\Models\User;
 use App\Notifications\AccountVerified;
@@ -18,17 +19,23 @@ class UserController extends BaseCrudController
     {
         $this->model = User::class;
         $this->resourceName = "user";
+        $this->resourceClass = UserResource::class;
+        $this->searchableFields = ['name', 'email'];
         $this->validationRules = [
             'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users',
+            'email' => 'required|email|unique:users,email',
             'password' => 'required|string|min:6|confirmed',
+            'current_streak'=>'required|integer|min:0',
+            'longest_streak'=>'required|integer|min:0',
+            'last_activity_date'=>'nullable|date',
         ];
         $this->editValidationRules = [
             'name' => 'sometimes|required|string|max:255',
-            'email' => 'sometimes|required|email|unique:users,email,',
+            'email' => 'sometimes|required|email|unique:users,email',
             'password' => 'sometimes|required|string|min:6|confirmed',
             'current_streak'=>'sometimes|required|integer|min:0',
             'longest_streak'=>'sometimes|required|integer|min:0',
+            'last_activity_date'=>'sometimes|required|date',
         ];
     }
 

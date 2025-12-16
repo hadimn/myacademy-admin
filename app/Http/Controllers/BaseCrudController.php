@@ -16,14 +16,28 @@ class BaseCrudController extends Controller
     protected $editValidationRules = [];
     protected $fileFields = [];
     protected $resourceName = 'resource';
+    protected $resourceClass = null;
+    protected $searchableFields = [];
 
-    public function index()
+    public function index(Request $request)
     {
         try {
-            $data = $this->model::all();
+            $query = $this->model::query();
+
+            // Handle search if searchableFields are defined
+            if ($request->has('search') && !empty($request->search) && !empty($this->searchableFields)) {
+                $search = $request->search;
+                $query->where(function ($q) use ($search) {
+                    foreach ($this->searchableFields as $field) {
+                        $q->orWhere($field, 'like', "%{$search}%");
+                    }
+                });
+            }
+
+            $data = $query->get();
 
             return $this->successResponse(
-                $data,
+                $this->wrapResource($data),
                 "All {$this->resourceName}s retrieved successfully",
                 Response::HTTP_OK,
             );
@@ -31,7 +45,7 @@ class BaseCrudController extends Controller
             return $this->errorResponse(
                 "Failed to retrieve {$this->resourceName}",
                 Response::HTTP_INTERNAL_SERVER_ERROR,
-                [$e->getMessage(),],
+                [$e->getMessage()],
             );
         }
     }
@@ -41,6 +55,11 @@ class BaseCrudController extends Controller
         try {
             $validated = $request->validate($this->validationRules);
 
+            // Decode criteria if it exists
+            if (isset($validated['criteria']) && is_string($validated['criteria'])) {
+                $validated['criteria'] = json_decode($validated['criteria'], true);
+            }
+
             $resource = $this->model::make($validated);
 
             $this->handleFileUploads($request, $resource);
@@ -48,7 +67,7 @@ class BaseCrudController extends Controller
             $resource->save();
 
             return $this->successResponse(
-                $resource,
+                $this->wrapResource($resource),
                 "{$this->resourceName} created successfully",
                 Response::HTTP_CREATED, //201
             );
@@ -76,7 +95,7 @@ class BaseCrudController extends Controller
             }
 
             return $this->successResponse(
-                $resource,
+                $this->wrapResource($resource),
                 "{$this->resourceName} with id: $id retrieved successfully",
                 Response::HTTP_OK,
             );
@@ -102,6 +121,9 @@ class BaseCrudController extends Controller
 
             foreach ($validated as $key => $value) {
                 if ($request->has($key)) {
+                    if ($key === 'criteria' && is_string($value)) {
+                        $value = json_decode($value, true);
+                    }
                     $resource->$key = $value;
                 }
             }
@@ -111,7 +133,7 @@ class BaseCrudController extends Controller
             $resource->save();
 
             return $this->successResponse(
-                $resource,
+                $this->wrapResource($resource),
                 "{$this->resourceName} updated successfully",
                 Response::HTTP_OK,
             );
@@ -146,9 +168,9 @@ class BaseCrudController extends Controller
             }
 
             return $this->successResponse(
-                $resource,
+                $this->wrapResource($resource),
                 "{$this->resourceName} deleted successfully",
-                Response::HTTP_NO_CONTENT,
+                Response::HTTP_OK,
             );
         } catch (\Exception $e) {
             return $this->errorResponse(
@@ -187,5 +209,18 @@ class BaseCrudController extends Controller
             'status' => 'failed',
             'message' => "{$this->resourceName} with id: $id not found",
         ], 404);
+    }
+
+    protected function wrapResource($data)
+    {
+        if (!$this->resourceClass) {
+            return $data;
+        }
+
+        if ($data instanceof \Illuminate\Support\Collection || $data instanceof \Illuminate\Database\Eloquent\Collection) {
+            return ($this->resourceClass)::collection($data);
+        }
+
+        return new $this->resourceClass($data);
     }
 }

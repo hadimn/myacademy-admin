@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\UserBadgesResource;
 use App\Models\UserBadgesModel;
 
 class UserBadgesController extends BaseCrudController
@@ -10,6 +11,7 @@ class UserBadgesController extends BaseCrudController
     {
         $this->model = UserBadgesModel::class;
         $this->resourceName = 'User Badge';
+        $this->resourceClass = UserBadgesResource::class;
         $this->validationRules = [
             "user_id" => "required|integer|exists:users,id",
             "badge_id" => "required|integer|exists:Badges,Badge_id",

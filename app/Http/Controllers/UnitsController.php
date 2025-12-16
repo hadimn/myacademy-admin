@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\UnitsResource;
 use App\Models\UnitsModel;
 use Illuminate\Http\Request;
 
@@ -11,6 +12,7 @@ class UnitsController extends BaseCrudController
     {
         $this->model = UnitsModel::class;
         $this->resourceName = "Unit";
+        $this->resourceClass = UnitsResource::class;
         $this->validationRules = [
             "section_id" => "required|integer|exists:sections,section_id",
             "title" => "required|string|max:255",

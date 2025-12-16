@@ -2,7 +2,7 @@
 
 namespace App\Services;
 
-use App\Models\coursesModel;
+use App\Models\CoursesModel;
 use App\Models\LessonsModel;
 use App\Models\User;
 use App\Models\UserProgressModel;
@@ -69,7 +69,7 @@ class SuggestionsService
     }
 
 
-    protected function calculateCourseProgress(User $user, coursesModel $course)
+    protected function calculateCourseProgress(User $user, CoursesModel $course)
     {
         $userProgress = UserProgressModel::where('course_id', $course->course_id)
             ->where('user_id', $user->id)
