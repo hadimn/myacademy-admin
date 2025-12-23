@@ -17,32 +17,30 @@ class AnsweredQuestionsSeeder extends Seeder
     {
         $faker = Faker::create();
 
-        // Get all users and questions
+        // Get all users
         $users = User::all();
-        $questions = QuestionsModel::all();
+        
+        // LIMIT: Only get the first 2 questions
+        $questions = QuestionsModel::orderBy('questions_id', 'asc')->take(2)->get();
 
         if ($users->isEmpty() || $questions->isEmpty()) {
             echo "Skipping AnsweredQuestionsSeeder: missing users or questions.\n";
             return;
         }
 
-        echo "Creating answered questions for {$users->count()} users and {$questions->count()} questions...\n";
+        echo "Creating answered questions for {$users->count()} users (2 questions each)...\n";
 
         $totalRecords = 0;
 
-        // For each user, create one answered question record for each question
         foreach ($users as $user) {
             foreach ($questions as $question) {
-                // Check if this user already has a record for this question
+                // Check if this user already has a record for this specific question
                 $existingRecord = AnsweredQuestionsModel::where('user_id', $user->id)
                     ->where('questions_id', $question->questions_id)
                     ->first();
 
                 if (!$existingRecord) {
-                    // Random pass/fail with 70% chance of passing
                     $isPassed = $faker->boolean(70);
-                    
-                    // If passed → full points, else → random points between 0 and points-1
                     $earnedPoints = $isPassed ? $question->points : $faker->numberBetween(0, $question->points - 1);
 
                     AnsweredQuestionsModel::create([
@@ -59,15 +57,6 @@ class AnsweredQuestionsSeeder extends Seeder
             }
         }
 
-        $expectedTotal = $users->count() * $questions->count();
-        $actualTotal = AnsweredQuestionsModel::count();
-        
-        echo "Successfully seeded {$totalRecords} new answered question records.\n";
-        echo "Total answered questions in database: {$actualTotal}\n";
-        echo "Expected total (users × questions): {$expectedTotal}\n";
-        
-        if ($actualTotal < $expectedTotal) {
-            echo "Note: Some records already existed and were skipped.\n";
-        }
+        echo "Successfully seeded {$totalRecords} new records.\n";
     }
 }

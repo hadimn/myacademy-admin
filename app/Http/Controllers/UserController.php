@@ -25,18 +25,19 @@ class UserController extends BaseCrudController
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
             'password' => 'required|string|min:6|confirmed',
-            'current_streak'=>'required|integer|min:0',
-            'longest_streak'=>'required|integer|min:0',
-            'last_activity_date'=>'nullable|date',
+            'current_streak' => 'required|integer|min:0',
+            'longest_streak' => 'required|integer|min:0',
+            'last_activity_date' => 'nullable|date',
         ];
         $this->editValidationRules = [
             'name' => 'sometimes|required|string|max:255',
             'email' => 'sometimes|required|email|unique:users,email',
             'password' => 'sometimes|required|string|min:6|confirmed',
-            'current_streak'=>'sometimes|required|integer|min:0',
-            'longest_streak'=>'sometimes|required|integer|min:0',
-            'last_activity_date'=>'sometimes|required|date',
+            'current_streak' => 'sometimes|required|integer|min:0',
+            'longest_streak' => 'sometimes|required|integer|min:0',
+            'last_activity_date' => 'sometimes|required|date',
         ];
+        $this->searchableFields = ['name', 'email'];
     }
 
     public function deleteUserById($id)

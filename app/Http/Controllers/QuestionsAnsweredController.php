@@ -19,12 +19,15 @@ class QuestionsAnsweredController extends BaseCrudController
             "earned_points" => "nullable|integer|min:0",
             "is_passed" => "nullable|boolean",
         ];
-
         $this->editValidationRules = [
             "user_id" => "sometimes|required|integer|exists:users,id",
             "questions_id" => "sometimes|required|integer|exists:questions,question_id",
             "earned_points" => "nullable|integer|min:0",
             "is_passed" => "nullable|boolean",
+        ];
+        $this->searchableFields = [
+            "user_id",
+            "questions_id",
         ];
     }
 }

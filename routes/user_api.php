@@ -17,14 +17,6 @@ use Illuminate\Support\Facades\Route;
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 
-// 2. EMAIL VERIFICATION (Uses signed URLs/Tokens, not Sanctum ability)
-// {hash} ==> otp code
-Route::get('/email/verify/{id}/{hash}', [UserController::class, 'verifyEmailWithOtp'])->name('verification.verify');
-Route::post('/email/verification-notification', function (Request $request) {
-    // Requires standard 'auth' middleware for session or Sanctum default
-    $request->user()->sendEmailVerificationNotification();
-})->middleware(['auth:sanctum', 'throttle:6,1'])->name('verification.send');
-
 
 // 3. AUTHENTICATED USER ROUTES (Requires 'user-access' ability)
 Route::middleware(['auth:sanctum', 'ability:user-access'])->group(function () {
@@ -38,7 +30,7 @@ Route::middleware(['auth:sanctum', 'ability:user-access'])->group(function () {
     });
 
     // Answerin question route
-    Route::post('/question/{question_id}/answer/correct', [UserProgressController::class, 'addPointsForCorrectAnswers']);
+    Route::post('/question/{question_id}/answer/correct', [UserProgressController::class, 'answerQuestion']);
     
     // Core User Actions (Streaks, Badges, Progress)
     // streak routes 

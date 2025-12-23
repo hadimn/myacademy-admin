@@ -32,5 +32,10 @@ class SectionsController extends BaseCrudController
         $this->fileFields = [
             'image_url',
         ];
+        $this->searchableFields = [
+            'title',
+            'description',
+            'course_id',
+        ];
     }
 }

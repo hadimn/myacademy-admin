@@ -32,5 +32,12 @@ class EnrollmentsController extends BaseCrudController
             "enrolled_at" => "nullable|date|after_or_equal:today",
             "completed_at" => "nullable|date",
         ];
+        $this->searchableFields = [
+            "user_id",
+            "course_id",
+            "payment_status",
+            "payment_method",
+            "transaction_id",
+        ];
     }
 }

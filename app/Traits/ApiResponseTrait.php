@@ -23,15 +23,24 @@ trait ApiResponseTrait
         int $statusCode = Response::HTTP_OK,
         bool $status = true,
     ): JsonResponse {
-        return response()->json([
+        $response = [
             'status'  => $status,
             'message' => $message,
-            'data'    => $data,
-            "current_page" => 1,
-            "per_page" => 10,
-            "total" => 45,
-            "last_page" => 5
-        ], $statusCode);
+        ];
+
+        // Check if the data is a paginated collection
+        if ($data instanceof \Illuminate\Http\Resources\Json\AnonymousResourceCollection && $data->resource instanceof \Illuminate\Pagination\LengthAwarePaginator) {
+            $paginator         = $data->resource;
+            $response['data'] = $data->collection;
+            $response['total']       = $paginator->total();
+            $response['per_page']    = $paginator->perPage();
+            $response['current_page'] = $paginator->currentPage();
+            $response['last_page']     = $paginator->lastPage();
+        } else {
+            $response['data'] = $data;
+        }
+
+        return response()->json($response, $statusCode);
     }
 
     /**

@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\EnrollmentsModel;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
@@ -80,7 +81,7 @@ class EnrollmentsSeeder extends Seeder
                 }
                 
                 // Set enrollment time, ensuring the course is not enrolled in the future
-                $enrolledAt = $faker->dateTimeBetween('-2 years', 'now');
+                $enrolledAt = Carbon::now(0);
                 $completedAt = null;
 
                 // Randomly set completion status for older, successfully paid/free courses

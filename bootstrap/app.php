@@ -10,12 +10,13 @@ use Laravel\Sanctum\Http\Middleware\CheckForAnyAbility;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
+        channels: __DIR__ . '/../routes/channels.php',
         web: __DIR__ . '/../routes/web.php',
         api: __DIR__ . '/../routes/api.php',
         commands: __DIR__ . '/../routes/console.php',
         health: '/up',
         using: function (Application $app) { // The closure now uses the standard Route:: facade
-            
+
             // 1. Load the default WEB routes
             Route::middleware('web')
                 ->group(base_path('routes/web.php'));
@@ -24,10 +25,10 @@ return Application::configure(basePath: dirname(__DIR__))
             Route::middleware('api') // Uses the 'api' middleware group (rate-limiting, stateless)
                 ->prefix('api')
                 ->group(base_path('routes/api.php'));
-            
+
             // 3. Load the dedicated USER API routes
             Route::middleware('api')
-                ->prefix('api/user') 
+                ->prefix('api/user')
                 ->name('api.user.')
                 ->group(base_path('routes/user_api.php'));
 
@@ -47,3 +48,4 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {})->create();
+    

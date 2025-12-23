@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Traits\ApiResponseTrait;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -34,7 +35,9 @@ class BaseCrudController extends Controller
                 });
             }
 
-            $data = $query->get();
+            // Use paginate instead of get to enable pagination.
+            $perPage = $request->input('per_page', 5); // Default to 5 items per page, or get from request.
+            $data = $query->paginate($perPage);
 
             return $this->successResponse(
                 $this->wrapResource($data),
@@ -58,6 +61,10 @@ class BaseCrudController extends Controller
             // Decode criteria if it exists
             if (isset($validated['criteria']) && is_string($validated['criteria'])) {
                 $validated['criteria'] = json_decode($validated['criteria'], true);
+            } 
+
+            if (isset($validated['password']) && !empty($validated['password'])) {
+                $validated['password'] = Hash::make($validated['password']);
             }
 
             $resource = $this->model::make($validated);
@@ -123,6 +130,9 @@ class BaseCrudController extends Controller
                 if ($request->has($key)) {
                     if ($key === 'criteria' && is_string($value)) {
                         $value = json_decode($value, true);
+                    }
+                    if ($key === 'password' && !empty($value)) {
+                        $value = Hash::make($value);
                     }
                     $resource->$key = $value;
                 }
@@ -217,7 +227,7 @@ class BaseCrudController extends Controller
             return $data;
         }
 
-        if ($data instanceof \Illuminate\Support\Collection || $data instanceof \Illuminate\Database\Eloquent\Collection) {
+        if ($data instanceof \Illuminate\Support\Collection || $data instanceof \Illuminate\Database\Eloquent\Collection || $data instanceof \Illuminate\Pagination\LengthAwarePaginator) {
             return ($this->resourceClass)::collection($data);
         }
 

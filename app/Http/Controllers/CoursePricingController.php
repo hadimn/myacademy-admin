@@ -26,5 +26,11 @@ class CoursePricingController extends BaseCrudController
             "discount_price" => "nullable|numeric|min:0",
             "discount_expires_at" => "nullable|date|after_or_equal:today",
         ];
+        $this->searchableFields = [
+            "course_id",
+            "price",
+            "discount_price",
+            "discount_expires_at",
+        ];
     }
 }

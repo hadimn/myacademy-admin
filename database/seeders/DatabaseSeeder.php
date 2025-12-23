@@ -32,9 +32,9 @@ class DatabaseSeeder extends Seeder
             EnrollmentsSeeder::class,
             BadgesSeeder::class,
             AdminSeeder::class,
-            // UserBadgeSeeder::class,
-            // UserProgressSeeder::class,
-            // AnsweredQuestionsSeeder::class,
+            UserBadgeSeeder::class,
+            UserProgressSeeder::class,
+            AnsweredQuestionsSeeder::class,
         ]);
         // User::factory(10)->create();
     }

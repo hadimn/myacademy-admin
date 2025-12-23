@@ -42,13 +42,18 @@ class UserProgressSeeder extends Seeder
                 continue;
             }
 
+            $firstLesson = LessonsModel::with('unit.section.course')->orderBy('lesson_id')->first();
+
             UserProgressModel::create([
                 'user_id'      => $user->id,
                 'lesson_id'    => $firstLesson->lesson_id,
+                'unit_id'      => $firstLesson->unit->unit_id,
+                'section_id'   => $firstLesson->unit->section->section_id,
+                'course_id'    => $firstLesson->unit->section->course->course_id,
                 'is_completed' => false,
                 'time_spent'   => 0,
-                'started_at'   => now(),   // only started
-                'completed_at' => null,    // not completed
+                'started_at'   => now(),
+                'completed_at' => null,
             ]);
         }
 

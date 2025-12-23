@@ -27,5 +27,9 @@ class UnitsController extends BaseCrudController
             "order" => "sometimes|required|integer|min:0",
             "is_last" => "nullable|boolean",
         ];
+        $this->searchableFields = [
+            "title",
+            "color",
+        ];
     }
 }

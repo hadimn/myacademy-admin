@@ -43,5 +43,10 @@ class LessonsController extends BaseCrudController
             'video_url',
             'image_url',
         ];
+        $this->searchableFields = [
+            'title',
+            'description',
+            'lesson_type',
+        ];
     }
 }

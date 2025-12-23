@@ -42,7 +42,7 @@ class AdminAuthController extends Controller
 
             // 3. Retrieve Authenticated Admin
             $admin = Auth::guard($this->adminGuard)->user();
-            
+
             // 4. Token Issuance
             $token = $admin->createToken('admin-token', $this->abilities)->plainTextToken;
 
@@ -54,7 +54,6 @@ class AdminAuthController extends Controller
                 'Admin logged in successfully.',
                 Response::HTTP_OK
             );
-
         } catch (ValidationException $e) {
             return $this->validationErrorResponse(
                 $e->errors(),
@@ -98,7 +97,6 @@ class AdminAuthController extends Controller
                 'Admin registered successfully.',
                 Response::HTTP_CREATED
             );
-
         } catch (ValidationException $e) {
             return $this->validationErrorResponse(
                 $e->errors(),
@@ -111,7 +109,7 @@ class AdminAuthController extends Controller
             );
         }
     }
-    
+
     /**
      * Handle Admin Logout (Revoke the current token).
      */
@@ -125,5 +123,70 @@ class AdminAuthController extends Controller
             'Admin logged out successfully.',
             Response::HTTP_OK
         );
+    }
+
+    /**
+     * Update the authenticated admin's profile information.
+     */
+    public function updateProfile(Request $request)
+    {
+        try {
+            $admin = $request->user();
+
+            $validatedData = $request->validate([
+                'name'  => 'required|string|max:255',
+                'email' => 'required|string|email|max:255|unique:admins,email,' . $admin->id,
+            ]);
+
+            $admin->update($validatedData);
+
+            return $this->successResponse(
+                $admin,
+                'Profile updated successfully.',
+                Response::HTTP_OK
+            );
+        } catch (ValidationException $e) {
+            return $this->validationErrorResponse($e->errors(), 'Update failed.');
+        } catch (\Exception $e) {
+            return $this->errorResponse($e->getMessage(), Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    /**
+     * Change the authenticated admin's password.
+     */
+    public function changePassword(Request $request)
+    {
+        try {
+            $request->validate([
+                'old_password' => 'required',
+                'password'     => 'required|string|min:8|confirmed',
+            ]);
+
+            $admin = $request->user();
+
+            // Check if the old password matches
+            if (!Hash::check($request->old_password, $admin->password)) {
+                return $this->errorResponse(
+                    'The provided old password does not match our records.',
+                    Response::HTTP_UNPROCESSABLE_ENTITY
+                );
+            }
+
+            // Update the password
+            $admin->update([
+                'password' => Hash::make($request->password),
+            ]);
+
+            return $this->successResponse(
+                null,
+                'Password changed successfully.',
+                Response::HTTP_OK
+            );
+        } catch (ValidationException $e) {
+            return $this->validationErrorResponse($e->errors(), 'Password change failed.');
+        } catch (\Exception $e) {
+            return $this->errorResponse($e->getMessage(), Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
     }
 }

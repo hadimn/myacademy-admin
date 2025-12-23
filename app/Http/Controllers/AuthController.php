@@ -2,17 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\OtpCodes;
-use App\Models\User;
+use App\Events\UserCreated;
 use App\Services\AuthService;
 use App\Traits\ApiResponseTrait;
 use Carbon\Carbon;
-use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpFoundation\Response;
 
 class AuthController extends Controller
@@ -41,6 +36,8 @@ class AuthController extends Controller
                     Response::HTTP_INTERNAL_SERVER_ERROR, // 500
                 );
             }
+
+            event(new UserCreated($user));
 
             return $this->successResponse(
                 $user,
@@ -108,6 +105,7 @@ class AuthController extends Controller
             }
 
             $this->authService->generateAndStoreOtp($user);
+            $user->sendEmailVerificationNotification();
 
             return $this->successResponse(
                 [

@@ -12,7 +12,7 @@ class BadgesSeeder extends Seeder
      */
     public function run(): void
     {
-        BadgesModel::truncate();
+        BadgesModel::query()->delete();
         $badges = [
             // 🏆 STREAK BADGES
             [

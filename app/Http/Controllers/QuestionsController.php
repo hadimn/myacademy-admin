@@ -22,8 +22,8 @@ class QuestionsController extends BaseCrudController
             "question_type" => "required|in:mcq,fill,torf,checkbox,matching",
             "video_url" => "nullable|mimes:mp4,mov,avi,wmv,m4a|max:250600",
             "image_url" => "nullable|mimes:jpg,jpeg,png,gif,svg|max:50048",
-            "points" => "required|integer|min:2|max:5",
-            "is_last" => "nulllable|boolean",
+            "points" => "required|integer|min:5|max:5",
+            "is_last" => "nullable|boolean",
             "options" => "nullable|json",
             "correct_answer" => "required|json",
             "explanation" => "nullable|string|min:6",
@@ -33,20 +33,24 @@ class QuestionsController extends BaseCrudController
             "lesson_id" => "sometimes|required|integer|exists:lessons,lesson_id",
             "title" => "sometimes|required|string|max:255",
             "description" => "sometimes|required|string|min:6",
-            "question_type" => "sometimes|required|in:mcq, fill, torf, checkbox, matching",
+            "question_type" => "sometimes|required|in:mcq,fill,torf,checkbox,matching",
             "video_url" => "nullable|mimes:mp4,mov,avi,wmv|max:250600",
             "image_url" => "nullable|mimes:jpg,jpeg,png,gif,svg|max:50048",
-            "points" => "sometimes|required|integer|min:2|max:5",
-            "is_last" => "nulllable|boolean",
+            "points" => "sometimes|required|integer|min:5|max:5",
+            "is_last" => "nullable|boolean",
             "options" => "nullable|json",
             "correct_answer" => "sometimes|required|json",
             "explanation" => "nullable|string|min:6",
             "order" => "sometimes|required|integer|min:1",
         ];
-
         $this->fileFields = [
             'image_url',
             'video_url',
+        ];
+        $this->searchableFields = [
+            'title',
+            'description',
+            'question_type',
         ];
     }
 

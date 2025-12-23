@@ -23,5 +23,9 @@ class UserBadgesController extends BaseCrudController
             "badge_id" => "sometimes|required|integer|exists:Badges,Badge_id",
             "earned_at" => "sometimes|required|date|after_or_equal:today",
         ];
+        $this->searchableFields = [
+            "user_id",
+            "badge_id",
+        ];
     }
 }

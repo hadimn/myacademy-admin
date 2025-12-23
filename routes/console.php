@@ -11,9 +11,12 @@ Artisan::command('inspire', function () {
 
 // Main streak processing - runs daily at 7:00 PM
 Schedule::command('streaks:send-reminders')
-    ->dailyAt('18:03')
+    ->dailyAt('15:21')
     ->timezone('Africa/Cairo') // Adjust to your timezone
     ->description('Process streaks and send daily reminders');
+
+// to run schedules in local you should run the command:
+// php artisan schedule:work
 
 // Optional: Test command that can be run manually
 // Schedule::command('streaks:test')

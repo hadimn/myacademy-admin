@@ -22,6 +22,15 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 
+// 2. EMAIL VERIFICATION (Uses signed URLs/Tokens, not Sanctum ability)
+// {hash} ==> otp code
+Route::get('/email/verify/{id}/{hash}', [UserController::class, 'verifyEmailWithOtp'])->name('verification.verify');
+Route::post('/email/verification-notification', function (Request $request) {
+    // Requires standard 'auth' middleware for session or Sanctum default
+    $request->user()->sendEmailVerificationNotification();
+})->middleware(['auth:sanctum', 'throttle:6,1'])->name('verification.send');
+
+
 // Route::prefix('user')->group(function () {
 //     // authintications routes
 //     Route::post('/register', [AuthController::class, 'register']);

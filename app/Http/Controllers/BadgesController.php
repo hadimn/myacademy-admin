@@ -15,10 +15,16 @@ class BadgesController extends BaseCrudController
 
     public function __construct()
     {
+        $this->badgeService = app(BadgeService::class);
+
         $this->model = BadgesModel::class;
         $this->resourceName = "Badge";
         $this->resourceClass = BadgeResource::class;
-        $this->searchableFields = ['name', 'description', 'type'];
+        $this->searchableFields = [
+            'name',
+            'description',
+            'type',
+        ];
         $this->validationRules = [
             'name' => 'required|string|max:255',
             'description' => 'required|string|min:6',
@@ -38,8 +44,6 @@ class BadgesController extends BaseCrudController
         $this->fileFields = [
             'icon',
         ];
-
-        $this->badgeService = app(BadgeService::class);
     }
 
     /**
@@ -76,7 +80,7 @@ class BadgesController extends BaseCrudController
             $user = $request->user();
             $newBadges = $this->badgeService->checkAndAwardBadges($user);
 
-            $message = count($newBadges) > 0 
+            $message = count($newBadges) > 0
                 ? count($newBadges) . ' new badge' . (count($newBadges) > 1 ? 's' : '') . ' awarded!'
                 : 'No new badges at this time. Keep learning!';
 
@@ -108,7 +112,7 @@ class BadgesController extends BaseCrudController
     {
         try {
             $user = $request->user();
-            
+
             // Validate type
             $validTypes = ['streak', 'course_completion', 'points', 'lesson_completion', 'time_spent'];
             if (!in_array($type, $validTypes)) {
@@ -139,7 +143,7 @@ class BadgesController extends BaseCrudController
         try {
             $user = $request->user();
             $types = ['streak', 'course_completion', 'points', 'lesson_completion', 'time_spent'];
-            
+
             $progress = [];
             foreach ($types as $type) {
                 $progress[$type] = $this->badgeService->getBadgeProgress($user, $type);
@@ -163,13 +167,13 @@ class BadgesController extends BaseCrudController
     {
         try {
             $user = $request->user();
-            
+
             // Get all badges from the system
             $allBadges = BadgesModel::all();
-            
+
             // Get badges user has already earned
             $earnedBadgeIds = $user->badges()->pluck('user_badges.badge_id')->toArray();
-            
+
             // Categorize badges
             $categorizedBadges = [
                 'earned' => $user->badges()->get(),
@@ -184,7 +188,7 @@ class BadgesController extends BaseCrudController
                 'stats' => [
                     'total_badges' => $allBadges->count(),
                     'earned_badges' => count($earnedBadgeIds),
-                    'completion_percentage' => $allBadges->count() > 0 
+                    'completion_percentage' => $allBadges->count() > 0
                         ? round((count($earnedBadgeIds) / $allBadges->count()) * 100, 2)
                         : 0
                 ]

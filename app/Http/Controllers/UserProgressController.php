@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\UserFinishLesson;
 use App\Http\Resources\UserprogressResource;
 use App\Models\AnsweredQuestionsModel;
 use App\Models\LessonsModel;
@@ -42,9 +43,16 @@ class UserProgressController extends BaseCrudController
             'started_at' => 'sometimes|required|date|after_or_equal:today',
             'completed_at' => 'sometimes|required|date|after_or_equal:today',
         ];
+        $this->searchableFields = [
+            'user_id',
+            'course_id',
+            'section_id',
+            'unit_id',
+            'lesson_id',
+        ];
     }
 
-    public function addPointsForCorrectAnswers(Request $request, $questionId)
+    public function answerQuestion(Request $request, $questionId)
     {
         try {
             // 1️⃣ Validate request
@@ -197,6 +205,12 @@ class UserProgressController extends BaseCrudController
                 $nextType = 'question';
             } else {
                 // Mark current lesson as completed
+                // Make sure $userProgress->load('user') exists
+                $user = $userProgress->user;
+                $lesson = $currentLesson;
+                $course = $currentCourse;
+
+                event(new UserFinishLesson($user, $lesson, $course));
                 $userProgress->is_completed = true;
                 $userProgress->completed_at = now();
                 $lessonCompleted = true;
