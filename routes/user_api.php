@@ -32,6 +32,7 @@ Route::prefix('home')->group(function () {
     Route::get('popular-paths', [UserHomePageController::class, 'popularCourses']);
     Route::get('stats', [UserHomePageController::class, 'stats']);
     Route::get('new-courses', [UserHomePageController::class, 'newCourses']);
+    Route::get('recommendations', [UserHomePageController::class, 'recommendations']);
 });
 
 // 3. AUTHENTICATED USER ROUTES (Requires 'user-access' ability)
@@ -87,4 +88,7 @@ Route::middleware(['auth:sanctum', 'ability:user-access'])->group(function () {
     });
 
     Route::apiResource('courses', CoursesController::class);
+
+    // route for search course
+    Route::get('/search', [CoursesController::class, 'search']);
 });

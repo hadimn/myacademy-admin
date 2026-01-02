@@ -55,7 +55,7 @@ class UserHomePageController extends Controller
     }
     
 
-    // create method to retrieve the newly added courses
+    // create method to retrieve the newly added courses ordered by the popularity
     public function newCourses()
     {
         try {
@@ -73,5 +73,32 @@ class UserHomePageController extends Controller
             );
         }
     }
+
+    // get recommendation
+    public function recommendations()
+    {
+        try {
+            $user = auth()->guard('sanctum')->user(); // Get the authenticated user
+            if (!$user) {
+                return $this->errorResponse(
+                    "Unauthenticated. Please log in to get recommendations.",
+                    Response::HTTP_UNAUTHORIZED,
+                );
+            }
+            $recommendations = $this->userHomePageService->getRecommendations($user);
+            return $this->successResponse(
+                $recommendations,
+                "Recommendations retrieved successfully!",
+                Response::HTTP_OK,
+            );
+        } catch (\Exception $e) {
+            return $this->errorResponse(
+                "Failed to retrieve recommendations due to an error!",
+                Response::HTTP_INTERNAL_SERVER_ERROR,
+                [$e->getMessage()],
+            );
+        }
+    }
+    
     
 }

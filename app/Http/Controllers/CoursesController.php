@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Resources\CourseResource;
 use App\Models\CoursesModel;
 use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\Response;
 
 class CoursesController extends BaseCrudController
 {
@@ -43,4 +44,49 @@ class CoursesController extends BaseCrudController
             'language',
         ];
     }
+
+    // create a search method to search for a specific course by searchable fields no need for pagination just get the result
+    public function search(Request $request)
+    {
+        try {
+            $query = $this->model::query();
+
+            if ($request->has('search') && !empty($request->search) && !empty($this->searchableFields)) {
+                $search = $request->search;
+                $query->where(function ($q) use ($search) {
+                    foreach ($this->searchableFields as $field) {
+                        $q->orWhere($field, 'like', "%{$search}%");
+                    }
+                });
+            } else {
+                return $this->errorResponse(
+                    "Please provide a search query.",
+                    Response::HTTP_BAD_REQUEST
+                );
+            }
+
+            $data = $query->get();
+
+            if ($data->isEmpty()) {
+                return $this->successResponse(
+                    [],
+                    "No {$this->resourceName}s found matching your search.",
+                    Response::HTTP_OK
+                );
+            }
+
+            return $this->successResponse(
+                $this->wrapResource($data),
+                "{$this->resourceName}s retrieved successfully",
+                Response::HTTP_OK,
+            );
+        } catch (\Exception $e) {
+            return $this->errorResponse(
+                "Failed to search {$this->resourceName}s",
+                Response::HTTP_INTERNAL_SERVER_ERROR,
+                [$e->getMessage()],
+            );
+        }
+    }
+    
 }
