@@ -4,6 +4,7 @@
 // authinticated admins routes
 use App\Http\Controllers\AdminAuthController;
 use App\Http\Controllers\AdminsController;
+use App\Http\Controllers\AiGenerateController;
 use App\Http\Controllers\BadgesController;
 use App\Http\Controllers\CoursePricingController;
 use App\Http\Controllers\CoursesController;
@@ -45,6 +46,9 @@ Route::middleware(['auth:sanctum', 'ability:admin-access'])->group(function () {
         Route::get('topusers', [LeaderboardController::class, 'getTopUsersByPoints']);
         Route::get('all', [LeaderboardController::class, 'getAllUsersByPoints']);
     });
+
+    // should pay for open ai to make it work.
+    Route::post('ai/generate', [AiGenerateController::class, 'generate']);
 
     Route::delete('user/{id}/delete', [UserController::class, 'deleteUserById']);
 

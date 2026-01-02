@@ -123,4 +123,17 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Frontend URL
+    |--------------------------------------------------------------------------
+    |
+    | This URL is used to generate links for the frontend application,
+    | such as email verification links or password reset links.
+    |
+    | note:
+    | the value is the default value if the value in .env is missing
+    */
+    'frontend_url' => env('APP_FRONTEND_URL', 'http://localhost:3000'),
+
 ];

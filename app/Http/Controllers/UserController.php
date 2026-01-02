@@ -24,6 +24,7 @@ class UserController extends BaseCrudController
         $this->validationRules = [
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
+            'profile_image' => 'nullable|jpg,jpeg,png,gif,svg|max:50048',
             'password' => 'required|string|min:6|confirmed',
             'current_streak' => 'required|integer|min:0',
             'longest_streak' => 'required|integer|min:0',
@@ -32,6 +33,7 @@ class UserController extends BaseCrudController
         $this->editValidationRules = [
             'name' => 'sometimes|required|string|max:255',
             'email' => 'sometimes|required|email|unique:users,email',
+            'profile_image' => 'nullable|jpg,jpeg,png,gif,svg|max:50048',
             'password' => 'sometimes|required|string|min:6|confirmed',
             'current_streak' => 'sometimes|required|integer|min:0',
             'longest_streak' => 'sometimes|required|integer|min:0',
@@ -140,7 +142,7 @@ class UserController extends BaseCrudController
         }
     }
 
-    public function verifyEmailWithOtp(Request $request, $id, $otp)
+    public function verifyEmailWithOtp($id, $otp)
     {
         $user = User::findOrFail($id);
 

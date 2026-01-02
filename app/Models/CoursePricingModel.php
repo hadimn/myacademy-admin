@@ -4,29 +4,6 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-/**
- * @property int $pricing_id
- * @property int $course_id
- * @property numeric $price
- * @property bool $is_free
- * @property numeric|null $discount_price
- * @property \Illuminate\Support\Carbon|null $discount_expires_at
- * @property \Illuminate\Support\Carbon|null $created_at
- * @property \Illuminate\Support\Carbon|null $updated_at
- * @property-read \App\Models\CoursesModel $course
- * @method static \Illuminate\Database\Eloquent\Builder<static>|CoursePricingModel newModelQuery()
- * @method static \Illuminate\Database\Eloquent\Builder<static>|CoursePricingModel newQuery()
- * @method static \Illuminate\Database\Eloquent\Builder<static>|CoursePricingModel query()
- * @method static \Illuminate\Database\Eloquent\Builder<static>|CoursePricingModel whereCourseId($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|CoursePricingModel whereCreatedAt($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|CoursePricingModel whereDiscountExpiresAt($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|CoursePricingModel whereDiscountPrice($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|CoursePricingModel whereIsFree($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|CoursePricingModel wherePrice($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|CoursePricingModel wherePricingId($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|CoursePricingModel whereUpdatedAt($value)
- * @mixin \Eloquent
- */
 class CoursePricingModel extends Model
 {
     protected $table = "course_pricings";

@@ -6,10 +6,12 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BadgesController;
+use App\Http\Controllers\CoursesController;
 use App\Http\Controllers\LeaderboardController;
 use App\Http\Controllers\StreakController;
 use App\Http\Controllers\SuggestionsController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\UserHomePageController;
 use App\Http\Controllers\UserProgressController;
 use Illuminate\Support\Facades\Request;
 use Illuminate\Support\Facades\Route;
@@ -17,9 +19,26 @@ use Illuminate\Support\Facades\Route;
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 
+// 2. EMAIL VERIFICATION (Uses signed URLs/Tokens, not Sanctum ability)
+// {hash} ==> otp code
+Route::get('/email/verify/{id}/{hash}', [UserController::class, 'verifyEmailWithOtp'])->name('verification.verify');
+Route::post('/email/verification-notification', function (Request $request) {
+    // Requires standard 'auth' middleware for session or Sanctum default
+    $request->user()->sendEmailVerificationNotification();
+})->middleware(['auth:sanctum', 'throttle:6,1'])->name('verification.send');
+Route::post('/resend-otp', [AuthController::class, 'resendOtp']);
+
+Route::prefix('home')->group(function () {
+    Route::get('popular-paths', [UserHomePageController::class, 'popularCourses']);
+    Route::get('stats', [UserHomePageController::class, 'stats']);
+    Route::get('new-courses', [UserHomePageController::class, 'newCourses']);
+});
 
 // 3. AUTHENTICATED USER ROUTES (Requires 'user-access' ability)
 Route::middleware(['auth:sanctum', 'ability:user-access'])->group(function () {
+    // isAuthinticated
+    Route::get('/is-authenticated', [AuthController::class, 'isAuthinticated']);
+
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::post('/delete', [AuthController::class, 'deleteMyAccount']);
 
@@ -31,7 +50,7 @@ Route::middleware(['auth:sanctum', 'ability:user-access'])->group(function () {
 
     // Answerin question route
     Route::post('/question/{question_id}/answer/correct', [UserProgressController::class, 'answerQuestion']);
-    
+
     // Core User Actions (Streaks, Badges, Progress)
     // streak routes 
     Route::prefix('streak')->group(function () {
@@ -59,10 +78,13 @@ Route::middleware(['auth:sanctum', 'ability:user-access'])->group(function () {
     Route::prefix('leaderboard')->group(function () {
         Route::get('topusers', [LeaderboardController::class, 'getTopUsersByPoints']);
         Route::get('all', [LeaderboardController::class, 'getAllUsersByPoints']);
+        Route::get('rank', [LeaderboardController::class, 'GetMyRank']);
     });
 
     Route::prefix('suggested')->group(function () {
         Route::get('courses', [SuggestionsController::class, 'getCoursesSuggestion']);
         Route::get('lessons', [SuggestionsController::class, 'getLessonsSuggestion']);
     });
+
+    Route::apiResource('courses', CoursesController::class);
 });

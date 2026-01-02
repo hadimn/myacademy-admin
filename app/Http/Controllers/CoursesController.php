@@ -16,6 +16,8 @@ class CoursesController extends BaseCrudController
         $this->validationRules = [
             'title' => 'required|string|max:255',
             'description' => 'required|string|min:26',
+            'level' => 'required|string|in:beginner,intermediate,advanced',
+            'topics' => 'required|json',
             'video_url' => 'nullable|mimes:mp4,mov,avi,wmv|max:250600',
             'image_url' => 'nullable|mimes:jpg,jpeg,png,gif,svg|max:50048',
             'language' => 'required|string|min:2',
@@ -24,6 +26,8 @@ class CoursesController extends BaseCrudController
         $this->editValidationRules = [
             'title' => 'sometimes|required|string|max:255',
             'description' => 'sometimes|required|string|min:26',
+            'level' => 'sometimes|required|string|in:beginner,intermediate,advanced',
+            'topics' => 'sometimes|required|json',
             'video_url' => 'nullable|mimes:mp4,mov,avi,wmv|max:250600',
             'image_url' => 'nullable|mimes:jpg,jpeg,png,gif,svg|max:50048',
             'language' => 'sometimes|required|string|min:2',

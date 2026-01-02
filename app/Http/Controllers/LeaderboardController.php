@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Services\LeaderboardService;
+use Illuminate\Support\Facades\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 class LeaderboardController extends BaseCrudController
@@ -43,6 +44,27 @@ class LeaderboardController extends BaseCrudController
         } catch (\Exception $e) {
             return $this->errorResponse(
                 "faied due to an error!",
+                Response::HTTP_INTERNAL_SERVER_ERROR,
+                [$e->getMessage()],
+            );
+        }
+    }
+
+    // get authinticated user rank:
+    public function GetMyRank(Request $request)
+    {
+        try {
+            $user = $request->user();
+            $rank = $this->leaderboardService->getMyRank($user);
+            return $this->successResponse(
+                $rank,
+                "retrieved successfuly my rank",
+                Response::HTTP_OK,
+            );
+        } catch (\Exception $e) { 
+
+           return $this->errorResponse(
+                "failed due to an error!",
                 Response::HTTP_INTERNAL_SERVER_ERROR,
                 [$e->getMessage()],
             );

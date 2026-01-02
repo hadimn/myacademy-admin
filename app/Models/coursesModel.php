@@ -18,6 +18,8 @@ class CoursesModel extends Model
     protected $fillable = [
         "title",
         "description",
+        "level",
+        "topics",
         "video_url",
         "image_url",
         "language",
@@ -39,5 +41,11 @@ class CoursesModel extends Model
     public function userProgress()
     {
         return $this->hasMany(UserProgressModel::class, 'course_id', 'course_id');
+    }
+
+    // enrollments
+    public function enrollments()
+    {
+        return $this->hasMany(EnrollmentsModel::class, 'course_id', 'course_id');
     }
 }

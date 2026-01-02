@@ -1,35 +1,5 @@
 <?php
 
-use App\Http\Controllers\AdminAuthController;
-use App\Http\Controllers\AuthController;
-use App\Http\Controllers\BadgeController;
-use App\Http\Controllers\BadgesController;
-use App\Http\Controllers\CoursePricingController;
-use App\Http\Controllers\CoursesController;
-use App\Http\Controllers\EnrollmentsController;
-use App\Http\Controllers\LeaderboardController;
-use App\Http\Controllers\LessonsController;
-use App\Http\Controllers\QuestionsAnsweredController;
-use App\Http\Controllers\QuestionsController;
-use App\Http\Controllers\SectionsController;
-use App\Http\Controllers\StreakController;
-use App\Http\Controllers\SuggestionsController;
-use App\Http\Controllers\UnitsController;
-use App\Http\Controllers\UserBadgesController;
-use App\Http\Controllers\UserController;
-use App\Http\Controllers\UserProgressController;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Route;
-
-
-// 2. EMAIL VERIFICATION (Uses signed URLs/Tokens, not Sanctum ability)
-// {hash} ==> otp code
-Route::get('/email/verify/{id}/{hash}', [UserController::class, 'verifyEmailWithOtp'])->name('verification.verify');
-Route::post('/email/verification-notification', function (Request $request) {
-    // Requires standard 'auth' middleware for session or Sanctum default
-    $request->user()->sendEmailVerificationNotification();
-})->middleware(['auth:sanctum', 'throttle:6,1'])->name('verification.send');
-
 
 // Route::prefix('user')->group(function () {
 //     // authintications routes

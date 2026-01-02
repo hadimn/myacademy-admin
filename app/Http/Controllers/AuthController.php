@@ -3,11 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Events\UserCreated;
+use App\Models\User;
 use App\Services\AuthService;
 use App\Traits\ApiResponseTrait;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Symfony\Component\HttpFoundation\Response;
 
 class AuthController extends Controller
@@ -19,6 +21,34 @@ class AuthController extends Controller
     {
         $this->authService = $authService;
     }
+
+    // isAuthinticated
+    public function isAuthinticated()
+    {
+        try {
+            $user = Auth::user();
+
+            if (!$user) {
+                return $this->errorResponse(
+                    "unauthinticated",
+                    Response::HTTP_UNAUTHORIZED,
+                );
+            }
+
+            return $this->successResponse(
+                $user,
+                "authinticated",
+                Response::HTTP_OK,
+            );
+        } catch (\Exception $e) {
+            return $this->errorResponse(
+                "unauthinticated",
+                Response::HTTP_INTERNAL_SERVER_ERROR,
+                [$e->getMessage()],
+            );
+        }
+    }
+
     public function register(Request $request)
     {
         try {
@@ -26,7 +56,16 @@ class AuthController extends Controller
                 'name' => 'required|string|max:255',
                 'email' => 'required|email|unique:users',
                 'password' => 'required|string|min:6|confirmed',
+                'profile_image' => 'nullable|jpg,jpeg,png,gif,svg|max:50048',
             ]);
+
+            // handle profile_image field in the uploads in public/storage/uploads
+            if ($request->hasFile('profile_image')) {
+                $imagePath = $request->file('profile_image')->store('uploads/profile_images', 'public');
+                $request->merge(['profile_image' => $imagePath]);
+            } else {
+                $request->merge(['profile_image' => null]);
+            }
 
             $user = $this->authService->registerUser($request->only('name', 'email', 'password'));
 
@@ -40,7 +79,11 @@ class AuthController extends Controller
             event(new UserCreated($user));
 
             return $this->successResponse(
-                $user,
+                [
+                    'user' => $user,
+                    'email' => $user->email,
+                    'user_id' => $user->id,
+                ],
                 "user registered successfuly!",
                 Response::HTTP_CREATED, // 201
                 true,
@@ -68,67 +111,82 @@ class AuthController extends Controller
                 'password' => 'required|string',
             ]);
 
-            $user = $this->authService->authinticate($request->email, $request->password);
+            // 1. Check if the email exists in the database
+            $user = User::where('email', $request->email)->first();
 
             if (!$user) {
-                $this->errorResponse(
-                    'invalid credentials (email or password).',
-                    Response::HTTP_UNAUTHORIZED, // 500
+                return $this->errorResponse(
+                    'An unexpected error occurred.',
+                    Response::HTTP_NOT_FOUND, // 404
+                    ['This email is not registered!'],
                 );
             }
 
-            if ($user->hasVerifiedEmail()) {
-                $token = $user->createToken('auth_token', ['user-access'], Carbon::now()->addDays(1))->plainTextToken;
+            // 2. Check if the password is correct
+            if (!Hash::check($request->password, $user->password)) {
+                return $this->errorResponse(
+                    'An unexpected error occurred.',
+                    Response::HTTP_UNAUTHORIZED, // 401
+                    ['The password you entered is incorrect.'],
+                );
+            }
+
+            // 3. Email Verification Check
+            if (!$user->hasVerifiedEmail()) {
+                // 4. OTP Logic (Same as your original)
+                $otp = $user->otp;
+
+                if ($otp && !$otp->isExpired()) {
+                    return $this->successResponse(
+                        [
+                            "type" => "use_old_otp",
+                            "user_id" => $user->id,
+                        ],
+                        "Please use the previous OTP sent to your email.",
+                        Response::HTTP_OK,
+                        true,
+                    );
+                }
+
+                $this->authService->generateAndStoreOtp($user);
+                $user->sendEmailVerificationNotification();
 
                 return $this->successResponse(
                     [
-                        "user" => $user,
-                        "token" => $token,
+                        "type" => "new_otp",
+                        "user_id" => $user->id,
+                        "otp" => $otp->hashed_otp,
+                        "otp_is_expired" => $otp->isExpired(),
                     ],
-                    'user logged in successfuly',
-                    Response::HTTP_OK, // 201
-                    true,
+                    "We sent an OTP to your email. Please verify to get access!",
+                    Response::HTTP_FORBIDDEN,
+                    false
                 );
             }
 
-            $otp = $user->otp;
-
-            if ($otp && !$otp->isExpired()) {
-                return $this->successResponse(
-                    [
-                        "type" => "use_old_otp",
-                    ],
-                    "please, use the previous otp that we send to you before!",
-                    Response::HTTP_OK,
-                    false,
-                );
-            }
-
-            $this->authService->generateAndStoreOtp($user);
-            $user->sendEmailVerificationNotification();
+            $token = $user->createToken('auth_token', ['user-access'], Carbon::now()->addDays(1))->plainTextToken;
 
             return $this->successResponse(
                 [
-                    "type" => "new_otp",
+                    "user" => $user,
+                    "token" => $token,
                 ],
-                "we send an otp to your email, please verify to get access!",
-                Response::HTTP_FORBIDDEN,
-                false,
+                'User logged in successfully',
+                Response::HTTP_OK,
+                true
             );
         } catch (\Illuminate\Validation\ValidationException $e) {
-            return $this->validationErrorResponse(
-                [$e->getMessage()],
-            );
+            return $this->validationErrorResponse([$e->getMessage()]);
         } catch (\Exception $e) {
             return $this->errorResponse(
-                "failed due to an error!",
+                "An error occurred during login.",
                 Response::HTTP_INTERNAL_SERVER_ERROR,
-                [$e->getMessage()],
+                [$e->getMessage()]
             );
         }
     }
 
-    public function logout(Request $request)
+    public function logout()
     {
         try {
             $user = Auth::user();
@@ -156,7 +214,7 @@ class AuthController extends Controller
             return $this->successResponse(
                 null,
                 "User logged out successfully!",
-                Response::HTTP_NO_CONTENT // Best practice for logout
+                Response::HTTP_OK // Best practice for logout
             );
         } catch (\Exception $e) {
             return $this->errorResponse(
@@ -198,6 +256,45 @@ class AuthController extends Controller
                 "Failed to delete account.",
                 Response::HTTP_INTERNAL_SERVER_ERROR,
                 [$e->getMessage()] // Optional debug message
+            );
+        }
+    }
+
+    public function resendOtp(Request $request)
+    {
+        try {
+            $request->validate([
+                'user_id' => 'required|exists:users,id'
+            ]);
+
+            $user = User::find($request->user_id);
+
+            // Check if user is already verified
+            if ($user->hasVerifiedEmail()) {
+                return $this->successResponse(
+                    null,
+                    "Email already verified!",
+                    Response::HTTP_OK
+                );
+            }
+
+            // Generate new OTP
+            $this->authService->generateAndStoreOtp($user);
+            $user->sendEmailVerificationNotification();
+
+            return $this->successResponse(
+                [
+                    "type" => "new_otp",
+                    "user_id" => $user->id,
+                ],
+                "A new OTP has been sent to your email.",
+                Response::HTTP_OK
+            );
+        } catch (\Exception $e) {
+            return $this->errorResponse(
+                "Failed to resend OTP",
+                Response::HTTP_INTERNAL_SERVER_ERROR,
+                [$e->getMessage()]
             );
         }
     }

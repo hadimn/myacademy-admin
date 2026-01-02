@@ -36,6 +36,6 @@ class DatabaseSeeder extends Seeder
             UserProgressSeeder::class,
             AnsweredQuestionsSeeder::class,
         ]);
-        // User::factory(10)->create();
+        User::factory(10)->create();
     }
 }

@@ -19,6 +19,8 @@ class CourseResource extends JsonResource
             'course_id' => $this->course_id,
             'title' => $this->title,
             'description' => $this->description,
+            'level' => $this->level,
+            'topics' => $this->topics,
             'video_url' => $this->video_url ? asset('/storage/'.$this->video_url):null,
             'image_url'=> $this->image_url ? asset('/storage/'.$this->image_url) : null,
             'language' => $this->language,

@@ -15,6 +15,8 @@ return new class extends Migration
             $table->id('course_id');
             $table->string('title');
             $table->longText('description');
+            $table->enum('level',['beginner', 'intermediate', 'advanced'])->default('beginner');
+            $table->json('topics')->nullable();
             $table->longText('video_url')->charset('binary')->nullable();
             $table->longText('image_url')->charset('binary')->nullable();
             $table->string('language');

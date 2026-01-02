@@ -19,7 +19,7 @@ class User extends Authenticatable implements MustVerifyEmail
      *
      * @var list<string>
      */
-    protected $fillable = ['name', 'email', 'password', 'device_token', 'last_activity_date'];
+    protected $fillable = ['name', 'email', 'password', 'device_token', 'last_activity_date', 'profile_image'];
 
     /**
      * The attributes that should be hidden for serialization.
@@ -43,12 +43,14 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public function sendEmailVerificationNotification(): void
     {
-        $this->notify(new VerifyEmailWithOtp());
+        $latestOtp = $this->otp;
+        $this->notify(new VerifyEmailWithOtp($latestOtp));
     }
 
     public function otp()
     {
-        return $this->hasOne(OtpCodes::class, 'user_id');
+        return $this->hasOne(OtpCodes::class, 'user_id', 'id')
+            ->latest('expires_at'); // fetch the latest OTP by expiry
     }
 
     public function enrollments()

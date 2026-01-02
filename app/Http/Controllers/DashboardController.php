@@ -44,6 +44,7 @@ class DashboardController extends Controller
                 'user_progress' => UserProgressModel::count(),
                 'course_pricing' => CoursePricingModel::count(),
                 'enrollments' => EnrollmentsModel::count(),
+                'user_badges' => UserBadgesModel::count(),
             ]);
         } catch (\Exception $e) {
             return $this->errorResponse(
