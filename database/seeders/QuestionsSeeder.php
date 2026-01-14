@@ -32,7 +32,7 @@ class QuestionsSeeder extends Seeder
             for ($order = 1; $order <= 5; $order++) {
 
                 // Random question type
-                $type = $faker->randomElement(['mcq', 'fill', 'torf']);
+                $type = $faker->randomElement(['mcq', 'torf']); // add the fill type later
 
                 $questionTitle = "";
                 $options = [];
@@ -86,7 +86,7 @@ class QuestionsSeeder extends Seeder
                     'points'          => $faker->numberBetween(1, 5),
                     'is_last'         => $isLast,
                     'options'         => json_encode($options),
-                    'correct_answer'  => json_encode($correctAnswer),
+                    'correct_answer'  => $correctAnswer,
                     'explanation'     => $faker->randomElement([null, $faker->sentence(15)]),
                     'order'           => $order,
                     'created_at'      => now(),

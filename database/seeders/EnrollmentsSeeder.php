@@ -5,104 +5,106 @@ namespace Database\Seeders;
 use App\Models\EnrollmentsModel;
 use App\Models\User;
 use Carbon\Carbon;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Faker\Factory as Faker;
 
 class EnrollmentsSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
         $faker = Faker::create();
 
-        // 1. Get IDs and Pricing Data
+        // Get all users
         $userIds = User::pluck('id')->all();
-        // Get courses and their current pricing
+
+        // Get all courses with pricing
         $coursePricings = DB::table('course_pricings')
-                            ->join('courses', 'course_pricings.course_id', '=', 'courses.course_id')
-                            ->select('courses.course_id', 'course_pricings.price', 'course_pricings.is_free', 'course_pricings.discount_price')
-                            ->get()
-                            ->keyBy('course_id');
+            ->join('courses', 'course_pricings.course_id', '=', 'courses.course_id')
+            ->select(
+                'courses.course_id',
+                'course_pricings.price',
+                'course_pricings.is_free',
+                'course_pricings.discount_price'
+            )
+            ->get();
 
         if (empty($userIds) || $coursePricings->isEmpty()) {
-            echo "Skipping EnrollmentsSeeder: Users or Course Pricings not found. Please seed prerequisites.\n";
+            echo "Skipping EnrollmentsSeeder: Users or Course Pricings not found.\n";
             return;
         }
 
-        $enrollmentsCreated = 0;
         $paymentMethods = ['Stripe', 'PayPal', 'Credit Card'];
-        $paymentStatuses = ['paid', 'failed', 'refunded'];
-
+        $enrollmentsCreated = 0;
 
         foreach ($userIds as $userId) {
-            // Each user enrolls in a random number of courses (1 to 5)
-            $numCoursesToEnroll = $faker->numberBetween(1, 5);
-            
-            // Randomly select unique courses for the user
-            $courseIdsToEnroll = $faker->randomElements($coursePricings->keys()->all(), $numCoursesToEnroll, false);
-            
-            foreach ($courseIdsToEnroll as $courseId) {
-                $pricing = $coursePricings->get($courseId);
+            foreach ($coursePricings as $course) {
+                // Price calculation
+                $finalPrice = $course->discount_price > 0
+                    ? $course->discount_price
+                    : $course->price;
 
-                // Determine the price based on discount status (use base price if discount_price is 0.00)
-                $finalPrice = $pricing->discount_price > 0.00 ? $pricing->discount_price : $pricing->price;
-                $isFree = (bool)$pricing->is_free;
-
+                $isFree = (bool) $course->is_free;
 
                 $transactionId = null;
                 $paymentStatus = 'paid';
                 $paymentMethod = $isFree ? 'Free Enrollment' : $faker->randomElement($paymentMethods);
-                $amountPaid = $finalPrice;
+                $amountPaid = $isFree ? 0.00 : $finalPrice;
 
-                if ($isFree) {
-                    // Free course logic
-                    $amountPaid = 0.00;
-                    $paymentStatus = 'paid'; // Automatically 'paid'
-                } else {
-                    // Paid course logic: Simulate success, failure, or refund
+                if (!$isFree) {
                     $statusRoll = $faker->numberBetween(1, 100);
 
-                    if ($statusRoll <= 80) { // 80% success
+                    if ($statusRoll <= 80) {
+                        // Paid successfully
                         $paymentStatus = 'paid';
                         $transactionId = 'txn_' . $faker->unique()->sha1();
-                    } elseif ($statusRoll <= 95) { // 15% failed
+                    } elseif ($statusRoll <= 95) {
+                        // Failed
                         $paymentStatus = 'failed';
                         $transactionId = 'txn_fail_' . $faker->unique()->sha1();
-                        $amountPaid = 0.00; // No payment actually processed
-                    } else { // 5% refunded
+                        $amountPaid = 0.00;
+                    } else {
+                        // Refunded
                         $paymentStatus = 'refunded';
                         $transactionId = 'txn_ref_' . $faker->unique()->sha1();
-                        // amountPaid remains finalPrice, representing money that was returned
                     }
                 }
-                
-                // Set enrollment time, ensuring the course is not enrolled in the future
-                $enrolledAt = Carbon::now(0);
-                $completedAt = null;
 
-                // Randomly set completion status for older, successfully paid/free courses
-                if ($paymentStatus === 'paid' && $faker->boolean(40)) {
-                    // Completion date is after enrollment date, but not in the future
-                    $completedAt = $faker->dateTimeBetween($enrolledAt, 'now');
+                // Enrollment date (past 6 months)
+                $enrolledAt = Carbon::instance(
+                    $faker->dateTimeBetween('-6 months', 'now')
+                );
+
+                // Random completion - 45% chance of completion, but only for paid enrollments
+                $completedAt = null;
+                if ($paymentStatus === 'paid' && $faker->boolean(45)) {
+                    // Make sure completion date is after enrollment date
+                    $minCompletionDate = $enrolledAt->copy()->addDays(1);
+                    
+                    // Ensure minCompletionDate is not in the future
+                    $endDate = Carbon::now();
+                    if ($minCompletionDate->gt($endDate)) {
+                        // If min completion date is in the future, don't set completion
+                        $completedAt = null;
+                    } else {
+                        $completedAt = $faker->dateTimeBetween(
+                            $minCompletionDate,
+                            $endDate
+                        );
+                    }
                 }
-                
-                // Create the enrollment record
+
                 EnrollmentsModel::create([
-                    'user_id'           => $userId,
-                    'course_id'         => $courseId,
-                    'amount_paid'       => $amountPaid,
-                    'payment_status'    => $paymentStatus,
-                    'payment_method'    => $paymentMethod,
-                    // Note: Transaction ID is set as a string hash to match the migration type
-                    'transaction_id'    => $transactionId, 
-                    'enrolled_at'       => $enrolledAt,
-                    'completed_at'      => $completedAt,
-                    'created_at'        => $enrolledAt,
-                    'updated_at'        => $faker->dateTimeBetween($enrolledAt, 'now'),
+                    'user_id'        => $userId,
+                    'course_id'      => $course->course_id,
+                    'amount_paid'    => $amountPaid,
+                    'payment_status' => $paymentStatus,
+                    'payment_method' => $paymentMethod,
+                    'transaction_id' => $transactionId,
+                    'enrolled_at'    => $enrolledAt,
+                    'completed_at'   => $completedAt,
+                    'created_at'     => $enrolledAt,
+                    'updated_at'     => $faker->dateTimeBetween($enrolledAt, 'now'),
                 ]);
 
                 $enrollmentsCreated++;
@@ -110,5 +112,6 @@ class EnrollmentsSeeder extends Seeder
         }
 
         echo "Successfully created {$enrollmentsCreated} enrollment records.\n";
+        echo "Each of " . count($userIds) . " users enrolled in " . count($coursePricings) . " courses.\n";
     }
 }

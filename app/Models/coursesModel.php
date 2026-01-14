@@ -48,4 +48,15 @@ class CoursesModel extends Model
     {
         return $this->hasMany(EnrollmentsModel::class, 'course_id', 'course_id');
     }
+
+    public function pricing()
+    {
+        return $this->hasOne(CoursePricingModel::class, 'course_id', 'course_id');
+    }
+
+    public function ratings()
+    {
+        return $this->hasMany(CourseRatingsModel::class, 'course_id', 'course_id');
+    }
+    
 }

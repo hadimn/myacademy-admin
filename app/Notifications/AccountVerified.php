@@ -34,14 +34,14 @@ class AccountVerified extends Notification
      */
     public function toMail(object $notifiable): MailMessage
     {
+        $frontendUrl = config('app.frontend_url');
+        $myUrl = $frontendUrl . "/";
         return (new MailMessage)
             ->subject('Your Account is Verified')
-            ->greeting('hi'. $notifiable->name.'!')
-            ->line('Your account has been successfuly verified')
-            ->line('You can now access all features without restriction.')
-            ->line('If you need assistance, feel free to contact support.')
-            ->action('Notification Action', url('/'))
-            ->salutation('Thanks for joining us!');
+            ->view('emails.email-verified', [
+                'name' => $notifiable->name,
+                'url'  => $myUrl,
+            ]);
     }
 
     /**

@@ -23,7 +23,18 @@ class UserResource extends JsonResource
             'longest_streak' => $this->longest_streak,
             'last_activity_date' => $this->last_activity_date,
             'device_token' => $this->device_token,
+            'profile_image' => $this->profile_image ? asset('storage/' . $this->profile_image) : null,
+            'username' => $this->username,
+            'phone' => $this->phone,
+            'bio' => $this->bio,
             'created_at' => $this->created_at,
+            // courses_completed:
+            'stats' => [
+                'courses_completed' => $this->enrollments()->where('completed_at', '!=', null)->count(),
+                'badges_count' => $this->badges()->count(),
+                'courses_enrolled' => $this->enrollments(),
+                'courses_in_progress' => $this->enrollments()->where('completed_at', null)->count(),
+            ]
         ];
     }
 }

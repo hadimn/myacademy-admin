@@ -11,6 +11,7 @@ use Carbon\Carbon;
 use Illuminate\Auth\Events\Verified;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\Response;
 
 class UserController extends BaseCrudController
@@ -79,20 +80,22 @@ class UserController extends BaseCrudController
     {
         try {
             $user = $request->user();
+
             if (!$user) {
                 return $this->errorResponse(
-                    "unauthinticated",
-                    Response::HTTP_INTERNAL_SERVER_ERROR,
+                    "unauthenticated",
+                    Response::HTTP_UNAUTHORIZED,
                 );
             }
+
             return $this->successResponse(
-                $user,
-                "user $user->name details retrieved successfuly!",
+                new UserResource($user),
+                "User {$user->name} details retrieved successfully!",
                 Response::HTTP_OK,
             );
         } catch (\Exception $e) {
             return $this->errorResponse(
-                "failed to retrieve user's details due to an error",
+                "Failed to retrieve user's details due to an error",
                 Response::HTTP_INTERNAL_SERVER_ERROR,
                 [$e->getMessage()],
             );
@@ -112,13 +115,25 @@ class UserController extends BaseCrudController
             }
 
             $request->validate([
-                'name' => 'sometimes|required|string|max:255',
-                'email' => 'sometimes|required|email|unique:users,email,',
-                'password' => 'sometimes|required|string|min:6|confirmed',
+                'name' => 'nullable|string|max:255',
+                'phone' => 'nullable|string|max:255|unique:users,phone,' . $user->id,
+                'bio' => 'nullable|string|max:255',
+                'profile_image' => 'nullable|image|mimes:jpg,jpeg,png,gif,svg|max:5120',
             ]);
 
             if ($request->has('name')) $user->name = $request->name;
-            if ($request->has('email')) $user->email = $request->email;
+            if ($request->has('phone')) $user->phone = $request->phone;
+            if ($request->has('bio')) $user->bio = $request->bio;
+
+            // Handle profile_image upload
+            if ($request->hasFile('profile_image')) {
+                // Delete old image if exists
+                if ($user->profile_image) {
+                    Storage::disk('public')->delete($user->profile_image);
+                }
+                $imagePath = $request->file('profile_image')->store('uploads/profile_images', 'public');
+                $user->profile_image = $imagePath;
+            }
             if ($request->has('password')) $user->password = Hash::make($request->password);
 
             $user->save();

@@ -33,6 +33,8 @@ class UserHomePageService
                     }
                 }
 
+
+
                 return [
                     'course_id' => $course->course_id,
                     'title' => $course->title,

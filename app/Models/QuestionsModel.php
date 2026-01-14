@@ -10,11 +10,24 @@ class QuestionsModel extends Model
 
     protected $primaryKey = 'questions_id';
 
-    protected $guarded = [];
+    protected $fillable = [
+        'lesson_id',
+        'question_text',
+        'question_type',
+        'options',
+        'correct_answer',
+        'explanation',
+        'points',
+        'order',
+        'is_last',
+        'chest_after',
+        'created_at',
+        'updated_at',
+    ];
 
     protected $casts = [
         'options' => 'array',
-        'correct_answers' => 'array',
+        'correct_answer' => 'array',
         'is_last' => 'boolean',
     ];
 

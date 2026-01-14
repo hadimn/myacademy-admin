@@ -25,11 +25,20 @@ class AnsweredQuestionsModel extends Model
         "is_passed" => false,
     ];
 
-    public function users(){
-        return $this->hasMany(User::class, 'id', 'user_id');
+    /**
+     * Get the user that answered the question
+     * Fixed: Foreign key should be 'user_id', and the owner key should be 'id'
+     */
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'user_id', 'id');
     }
 
-    public function question(){
+    /**
+     * Get the question that was answered
+     */
+    public function question()
+    {
         return $this->belongsTo(QuestionsModel::class, 'questions_id', 'questions_id');
     }
 }

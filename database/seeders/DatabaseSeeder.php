@@ -19,8 +19,12 @@ class DatabaseSeeder extends Seeder
         User::factory()->create([
             'name' => 'hadi monzer',
             'email' => 'hadimonzer1999@gmail.com',
+            'username' => 'hadimonzer1999',
+            'phone' => '76872332',
             'password' => '@HadiMonzer123',
         ]);
+
+        User::factory(10)->create();
 
         $this->call([
             CoursesSeeder::class,
@@ -29,13 +33,13 @@ class DatabaseSeeder extends Seeder
             LessonsSeeder::class,
             QuestionsSeeder::class,
             CoursePricingSeeder::class,
+            CourseRatingsSeeder::class,
             EnrollmentsSeeder::class,
             BadgesSeeder::class,
             AdminSeeder::class,
-            UserBadgeSeeder::class,
+            // UserBadgeSeeder::class,
             UserProgressSeeder::class,
             AnsweredQuestionsSeeder::class,
         ]);
-        User::factory(10)->create();
     }
 }

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Events\UserCreated;
 use App\Models\User;
 use App\Services\AuthService;
+use App\Services\BadgeService;
 use App\Traits\ApiResponseTrait;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -17,9 +18,11 @@ class AuthController extends Controller
     use ApiResponseTrait;
 
     protected $authService;
-    public function __construct(AuthService $authService)
+    protected $badgeService;
+    public function __construct(AuthService $authService, BadgeService $badgeService)
     {
         $this->authService = $authService;
+        $this->badgeService = $badgeService;
     }
 
     // isAuthinticated
@@ -55,6 +58,9 @@ class AuthController extends Controller
             $request->validate([
                 'name' => 'required|string|max:255',
                 'email' => 'required|email|unique:users',
+                'username' => 'required|string|unique:users',
+                'phone' => 'nullable|string|max:255',
+                'bio' => 'nullable|string|max:255',
                 'password' => 'required|string|min:6|confirmed',
                 'profile_image' => 'nullable|jpg,jpeg,png,gif,svg|max:50048',
             ]);
@@ -67,7 +73,7 @@ class AuthController extends Controller
                 $request->merge(['profile_image' => null]);
             }
 
-            $user = $this->authService->registerUser($request->only('name', 'email', 'password'));
+            $user = $this->authService->registerUser($request->only('name', 'email','username', 'phone', 'bio', 'profile_image', 'password'));
 
             if (!$user) {
                 return $this->errorResponse(

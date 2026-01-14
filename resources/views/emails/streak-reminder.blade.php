@@ -104,7 +104,7 @@
                         </p>
 
                         <div style="text-align:center; margin: 32px 0;">
-                            <a href="{{ url('/') }}" class="button">
+                            <a href="{{ config('app.frontend_url').'/learning' }}" class="button">
                                 Continue Learning Now
                             </a>
                         </div>

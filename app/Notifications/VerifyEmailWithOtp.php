@@ -34,10 +34,11 @@ class VerifyEmailWithOtp extends Notification
 
         return (new MailMessage)
             ->subject('Verify Your Email Address')
-            ->greeting("Hello {$notifiable->name},")
-            ->line('Please verify your email to activate your account.')
-            ->line("Your OTP is: {$myotp}")
-            ->action('Verify Email', $verificationUrl) // <-- this is the clickable button
-            ->line('If you did not create an account, no action is required.');
+            ->view('emails.verify-otp', [
+                'name'      => $notifiable->name,
+                'otp'       => $myotp,
+                'url'       => $verificationUrl,
+                'expires'   => 5, // Example expiry time
+            ]);
     }
 }

@@ -23,6 +23,10 @@ class AuthService
         $user = User::create([
             'name' => $data['name'],
             'email' => $data['email'],
+            'username' => $data['username'],
+            'phone' => $data['phone'] ?? null,
+            'bio' => $data['bio'] ?? null,
+            'profile_image' => $data['profile_image'],
             'password' => Hash::make($data['password']),
         ]);
 

@@ -15,6 +15,11 @@ class BadgeService
 
         $newlyAwardedBadges = array_merge(
             $newlyAwardedBadges,
+            $this->checkRegistrationBadges($user) // For registration
+        );
+        
+        $newlyAwardedBadges = array_merge(
+            $newlyAwardedBadges,
             $this->checkStreakBadges($user)        // For learning streaks
         );
 
@@ -47,6 +52,17 @@ class BadgeService
         }
 
         return $newlyAwardedBadges;
+    }
+    private function checkRegistrationBadges(User $user): array
+    {
+        $eligibleBadges = BadgesModel::where('type', 'registration')
+            ->where('criteria->registered', true)
+            ->whereDoesntHave('users', function ($query) use ($user) {
+                $query->where('user_id', $user->id);
+            })
+            ->get();
+
+        return $this->awardBadges($user, $eligibleBadges);
     }
 
     /**

@@ -4,20 +4,27 @@
 
 // 1. PUBLIC USER AUTH ROUTES (No token needed yet)
 
+use App\Http\Controllers\Auth\GoogleController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BadgesController;
 use App\Http\Controllers\CoursesController;
 use App\Http\Controllers\LeaderboardController;
+use App\Http\Controllers\LearningController;
 use App\Http\Controllers\StreakController;
 use App\Http\Controllers\SuggestionsController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\UserHomePageController;
+use App\Http\Controllers\UserProfileController;
 use App\Http\Controllers\UserProgressController;
+use App\Http\Controllers\UserShopController;
 use Illuminate\Support\Facades\Request;
 use Illuminate\Support\Facades\Route;
 
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
+
+Route::get('auth/google', [GoogleController::class, 'loginWithGoogle']);
+Route::get('auth/google/callback', [GoogleController::class, 'handleGoogleCallback']);
 
 // 2. EMAIL VERIFICATION (Uses signed URLs/Tokens, not Sanctum ability)
 // {hash} ==> otp code
@@ -46,7 +53,7 @@ Route::middleware(['auth:sanctum', 'ability:user-access'])->group(function () {
     // Profile Endpoints
     Route::prefix("profile")->group(function () {
         Route::get('/details', [UserController::class, 'getUserDetails']);
-        Route::get('/details/edit', [UserController::class, 'editUserDetails']); // Should probably be PUT/PATCH
+        Route::put('/details/edit', [UserController::class, 'editUserDetails']); // Should probably be PUT/PATCH
     });
 
     // Answerin question route
@@ -80,6 +87,7 @@ Route::middleware(['auth:sanctum', 'ability:user-access'])->group(function () {
         Route::get('topusers', [LeaderboardController::class, 'getTopUsersByPoints']);
         Route::get('all', [LeaderboardController::class, 'getAllUsersByPoints']);
         Route::get('rank', [LeaderboardController::class, 'GetMyRank']);
+        Route::get('stats', [LeaderboardController::class, 'getStats']);
     });
 
     Route::prefix('suggested')->group(function () {
@@ -87,8 +95,51 @@ Route::middleware(['auth:sanctum', 'ability:user-access'])->group(function () {
         Route::get('lessons', [SuggestionsController::class, 'getLessonsSuggestion']);
     });
 
-    Route::apiResource('courses', CoursesController::class);
+    // courses prefix with getUserCourses
+    Route::prefix('courses')->group(function () {
+        Route::get('/', [CoursesController::class, 'getUserCourses']);
+        Route::get('/{courseId}', [CoursesController::class, 'getUserCourseById']);
+    });
 
     // route for search course
     Route::get('/search', [CoursesController::class, 'search']);
+
+    Route::prefix('users')->group(function () {
+        // Get user profile by username
+        Route::get('/{username}', [UserProfileController::class, 'getUserByUsername']);
+
+        // Get user badges/achievements
+        Route::get('/{username}/badges', [UserProfileController::class, 'getUserBadgesByUsername']);
+
+        // Check if user exists
+        Route::get('/check/{username}', [UserProfileController::class, 'checkUserExists']);
+    });
+
+    // Learning routes
+    Route::prefix('learning')->group(function () {
+        // Get all enrolled courses
+        Route::get('/courses', [LearningController::class, 'getEnrolledCourses']);
+
+        // Get course structure (sections, units, lessons)
+        Route::get('/courses/{courseId}/structure', [LearningController::class, 'getCourseStructure']);
+
+        // Get course progress
+        Route::get('/courses/{courseId}/progress', [LearningController::class, 'getCourseProgress']);
+
+        // Get lesson details with questions
+        Route::get('/lessons/{lessonId}', [LearningController::class, 'getLesson']);
+
+        // Submit lesson answers
+        Route::post('/lessons/{lessonId}/submit', [LearningController::class, 'submitLessonAnswers']);
+
+        // Get next lesson
+        Route::get('/lessons/{lessonId}/next', [LearningController::class, 'getNextLesson']);
+    });
+
+    // shop endpoints
+    Route::prefix('shop')->group(function () {
+        Route::get('/courses', [UserShopController::class, 'getCoursesForShop']);
+        Route::post('/courses/{courseId}/enroll', [UserShopController::class, 'enrollInCourse']);
+        Route::post('/courses/{courseId}/unenroll', [UserShopController::class, 'unenrollCourse']);
+    });
 });

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Services\UserHomePageService;
 use App\Traits\ApiResponseTrait;
+use App\Services\CourseRatingsService;
 use Symfony\Component\HttpFoundation\Response;
 
 class UserHomePageController extends Controller
@@ -11,15 +12,24 @@ class UserHomePageController extends Controller
     use ApiResponseTrait;
 
     protected UserHomePageService $userHomePageService;
+    protected CourseRatingsService $courseRatingsService;
 
-    public function __construct(UserHomePageService $userHomePageService){
+    public function __construct(UserHomePageService $userHomePageService, CourseRatingsService $courseRatingsService)
+    {
         $this->userHomePageService = $userHomePageService;
+        $this->courseRatingsService = $courseRatingsService;
     }
     // create method to retrieve the popular courses according to the enrollment frequecy
     public function popularCourses()
     {
         try {
             $popularCourses = $this->userHomePageService->getPopularCourses();
+            // add the average rating for each popular course
+            $popularCourses = $popularCourses->map(function ($course) {
+                $averageRating = $this->courseRatingsService->getAverageRating($course['course_id']);
+                $course['average_rating'] = $averageRating;
+                return $course;
+            });
             return $this->successResponse(
                 $popularCourses,
                 "Popular courses retrieved successfully!",
@@ -60,6 +70,12 @@ class UserHomePageController extends Controller
     {
         try {
             $newCourses = $this->userHomePageService->getNewCourses();
+            // average rating for each new course
+            $newCourses = $newCourses->map(function ($course) {
+                $averageRating = $this->courseRatingsService->getAverageRating($course['course_id']);
+                $course['average_rating'] = $averageRating;
+                return $course;
+            });
             return $this->successResponse(
                 $newCourses,
                 "New courses retrieved successfully!",
@@ -86,6 +102,13 @@ class UserHomePageController extends Controller
                 );
             }
             $recommendations = $this->userHomePageService->getRecommendations($user);
+            // get course ratings for each recommended course using courseratingsmodel:
+            $recommendations = $recommendations->map(function ($course) {
+                $averageRating = $this->courseRatingsService->getAverageRating($course['course_id']);
+                $course['average_rating'] = $averageRating;
+                return $course;
+            });
+            
             return $this->successResponse(
                 $recommendations,
                 "Recommendations retrieved successfully!",
