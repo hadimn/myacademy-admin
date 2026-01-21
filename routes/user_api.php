@@ -17,8 +17,11 @@ use App\Http\Controllers\UserHomePageController;
 use App\Http\Controllers\UserProfileController;
 use App\Http\Controllers\UserProgressController;
 use App\Http\Controllers\UserShopController;
-use Illuminate\Support\Facades\Request;
+use App\Http\Middleware\CoursePaidMiddleware;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use Stripe\PaymentIntent;
+use Stripe\Stripe;
 
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
@@ -41,6 +44,16 @@ Route::prefix('home')->group(function () {
     Route::get('new-courses', [UserHomePageController::class, 'newCourses']);
     Route::get('recommendations', [UserHomePageController::class, 'recommendations']);
 });
+
+// Shop courses - accessible to all, controller checks auth if present
+Route::get('/shop/courses', [UserShopController::class, 'getCoursesForShop']);
+
+Route::prefix('courses')->group(function () {
+    Route::get('/', [CoursesController::class, 'getUserCourses']);
+    Route::get('/{courseId}', [CoursesController::class, 'getUserCourseById']);
+});
+
+Route::get('/search', [CoursesController::class, 'search']);
 
 // 3. AUTHENTICATED USER ROUTES (Requires 'user-access' ability)
 Route::middleware(['auth:sanctum', 'ability:user-access'])->group(function () {
@@ -95,14 +108,6 @@ Route::middleware(['auth:sanctum', 'ability:user-access'])->group(function () {
         Route::get('lessons', [SuggestionsController::class, 'getLessonsSuggestion']);
     });
 
-    // courses prefix with getUserCourses
-    Route::prefix('courses')->group(function () {
-        Route::get('/', [CoursesController::class, 'getUserCourses']);
-        Route::get('/{courseId}', [CoursesController::class, 'getUserCourseById']);
-    });
-
-    // route for search course
-    Route::get('/search', [CoursesController::class, 'search']);
 
     Route::prefix('users')->group(function () {
         // Get user profile by username
@@ -138,8 +143,23 @@ Route::middleware(['auth:sanctum', 'ability:user-access'])->group(function () {
 
     // shop endpoints
     Route::prefix('shop')->group(function () {
-        Route::get('/courses', [UserShopController::class, 'getCoursesForShop']);
         Route::post('/courses/{courseId}/enroll', [UserShopController::class, 'enrollInCourse']);
         Route::post('/courses/{courseId}/unenroll', [UserShopController::class, 'unenrollCourse']);
+    });
+
+    // Strip payment route
+    Route::post('/create-payment-intent', function (Request $request) {
+        Stripe::setApiKey(config('services.stripe.secret'));
+
+        $intent = PaymentIntent::create([
+            'amount' => $request->amount,
+            'currency' => 'usd',
+            'payment_method_types' => ['card'],
+        ]);
+
+
+        return response()->json([
+            'clientSecret' => $intent->client_secret
+        ]);
     });
 });

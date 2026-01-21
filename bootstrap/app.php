@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\CoursePaidMiddleware;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -41,11 +42,24 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->prepend(HandleCors::class);
+
+        // Trust all proxies (Cloudflare Tunnel)
+        // we did that to make sure all response url's are https not http, such as
+        // images, videos, etc.
+        $middleware->trustProxies(
+            at: '*',
+            headers: \Illuminate\Http\Request::HEADER_X_FORWARDED_FOR |
+                \Illuminate\Http\Request::HEADER_X_FORWARDED_HOST |
+                \Illuminate\Http\Request::HEADER_X_FORWARDED_PORT |
+                \Illuminate\Http\Request::HEADER_X_FORWARDED_PROTO |
+                \Illuminate\Http\Request::HEADER_X_FORWARDED_AWS_ELB
+        );
+
         $middleware->alias([
             // Add the Sanctum abilities middleware here
             'abilities' => CheckAbilities::class,
             'ability' => CheckForAnyAbility::class,
+            'course.paid' => CoursePaidMiddleware::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {})->create();
-    

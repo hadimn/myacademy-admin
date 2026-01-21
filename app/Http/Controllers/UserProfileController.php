@@ -40,7 +40,7 @@ class UserProfileController extends Controller
             );
         }
     }
-    
+
 
     /**
      * Get user's badges/achievements by username
@@ -57,7 +57,7 @@ class UserProfileController extends Controller
                     'badge_id' => $userBadge->badge->badge_id,
                     'name' => $userBadge->badge->name,
                     'description' => $userBadge->badge->description,
-                    'icon' => $userBadge->badge->icon,
+                    'icon' => $userBadge->badge->icon ? asset('storage/' . $userBadge->badge->icon) : null,
                     'type' => $userBadge->badge->type,
                     'color' => $this->getBadgeColor($userBadge->badge->type),
                     'earned_at' => $userBadge->earned_at,
@@ -82,7 +82,7 @@ class UserProfileController extends Controller
             );
         }
     }
-    
+
 
     /**
      * Get badge color based on type
@@ -90,12 +90,12 @@ class UserProfileController extends Controller
     protected function getBadgeColor(string $type): string
     {
         return match ($type) {
-            'streak' => '#FFD700', // Gold
-            'course_completion' => '#4CAF50', // Green
-            'points' => '#2196F3', // Blue
-            'lesson_completion' => '#FF9800', // Orange
-            'time_spent' => '#9C27B0', // Purple
-            default => '#607D8B', // Grey
+            'streak' => 'gold-500', // Gold
+            'course_completion' => 'green-500', // Green
+            'points' => 'blue-500', // Blue
+            'lesson_completion' => 'orange-500', // Orange
+            'time_spent' => 'purple-500', // Purple
+            default => 'grey-500', // Grey
         };
     }
 
@@ -130,7 +130,7 @@ class UserProfileController extends Controller
             );
         }
     }
-    
+
 
     /**
      * Search users by name or username
@@ -175,5 +175,4 @@ class UserProfileController extends Controller
             );
         }
     }
-    
 }

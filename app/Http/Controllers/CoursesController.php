@@ -49,12 +49,18 @@ class CoursesController extends BaseCrudController
     public function getUserCourses(Request $request)
     {
         try {
-            $user = $request->user();
-            $enrolledCourseIds = $user->enrollments()->pluck('course_id')->toArray();
+            // Using auth('sanctum')->user() to detect user on public routes
+            $user = auth('sanctum')->user();
+            $enrolledCourseIds = [];
 
-            $courses = CoursesModel::with(['sections.units.lessons', 'pricing'])->get();
+            // Only get enrolled courses if user is authenticated
+            if ($user) {
+                $enrolledCourseIds = $user->enrollments()->pluck('course_id')->toArray();
+            }
 
-            $coursesData = $courses->map(function ($course) use ($enrolledCourseIds) {
+            $courses = CoursesModel::with(['pricing'])->get();
+
+            $coursesData = $courses->map(function ($course) use ($enrolledCourseIds, $user) {
                 $isEnrolled = \in_array($course->course_id, $enrolledCourseIds);
                 return [
                     'course_id' => $course->course_id,
@@ -67,19 +73,19 @@ class CoursesController extends BaseCrudController
                     'language' => $course->language,
                     'order' => $course->order,
                     'created_at' => $course->created_at,
-                    'is_enrolled' => $isEnrolled,
+                    'is_enrolled' => $user ? $isEnrolled : null, // Only show enrollment status if authenticated
                     'pricing' => $course->relationLoaded('pricing') && $course->pricing ? new CoursePricingResource($course->pricing) : null,
                 ];
             });
 
             return $this->successResponse(
                 $coursesData,
-                "User courses retrieved successfully",
+                "Courses retrieved successfully",
                 Response::HTTP_OK
             );
         } catch (\Exception $e) {
             return $this->errorResponse(
-                "Failed to retrieve user courses",
+                "Failed to retrieve courses",
                 Response::HTTP_INTERNAL_SERVER_ERROR,
                 [$e->getMessage()]
             );
@@ -90,8 +96,23 @@ class CoursesController extends BaseCrudController
     public function getUserCourseById(Request $request, $courseId)
     {
         try {
-            $user = $request->user();
-            $course = CoursesModel::with(['sections.units.lessons', 'pricing'])->find($courseId);
+            // Using auth('sanctum')->user() to detect user on public routes
+            $user = auth('sanctum')->user();
+            $isEnrolled = false;
+
+            // Check enrollment status if user is authenticated
+            if ($user) {
+                $isEnrolled = $user->enrollments()->where('course_id', $courseId)->exists();
+            }
+
+            // Load course with or without sections based on enrollment
+            if ($user && $isEnrolled) {
+                // Enrolled users get full course structure
+                $course = CoursesModel::with(['sections.units.lessons', 'pricing'])->find($courseId);
+            } else {
+                // Unauthenticated or non-enrolled users get basic info only
+                $course = CoursesModel::with(['pricing'])->find($courseId);
+            }
 
             if (!$course) {
                 return $this->errorResponse(
@@ -99,8 +120,6 @@ class CoursesController extends BaseCrudController
                     Response::HTTP_NOT_FOUND
                 );
             }
-
-            $isEnrolled = $user->enrollments()->where('course_id', $courseId)->exists();
 
             $courseData = [
                 'course_id' => $course->course_id,
@@ -113,11 +132,15 @@ class CoursesController extends BaseCrudController
                 'language' => $course->language,
                 'order' => $course->order,
                 'created_at' => $course->created_at,
-                'is_enrolled' => $isEnrolled,
+                'is_enrolled' => $user ? $isEnrolled : null, // Only show enrollment status if authenticated
                 'pricing' => $course->pricing
                     ? new CoursePricingResource($course->pricing)
                     : null,
-                'sections' => $course->sections->map(function ($section) {
+            ];
+
+            // Only include sections if user is enrolled
+            if ($user && $isEnrolled && $course->relationLoaded('sections')) {
+                $courseData['sections'] = $course->sections->map(function ($section) {
                     return [
                         'section_id' => $section->section_id,
                         'title' => $section->title,
@@ -138,17 +161,23 @@ class CoursesController extends BaseCrudController
                             ];
                         }),
                     ];
-                }),
-            ];
+                });
+            } else {
+                // For non-enrolled users, show a message instead of sections
+                $courseData['sections'] = null;
+                $courseData['message'] = $user
+                    ? "Enroll in this course to access the full content"
+                    : "Please log in and enroll to access the course content";
+            }
 
             return $this->successResponse(
                 $courseData,
-                "User course retrieved successfully",
+                "Course retrieved successfully",
                 Response::HTTP_OK
             );
         } catch (\Exception $e) {
             return $this->errorResponse(
-                "Failed to retrieve user course",
+                "Failed to retrieve course",
                 Response::HTTP_INTERNAL_SERVER_ERROR,
                 [$e->getMessage()]
             );

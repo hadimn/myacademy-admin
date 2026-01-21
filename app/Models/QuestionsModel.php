@@ -12,7 +12,7 @@ class QuestionsModel extends Model
 
     protected $fillable = [
         'lesson_id',
-        'question_text',
+        'title',
         'question_type',
         'options',
         'correct_answer',

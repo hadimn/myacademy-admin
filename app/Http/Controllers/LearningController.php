@@ -44,6 +44,7 @@ class LearningController extends Controller
                         'title' => $course->title,
                         'description' => $course->description,
                         'image_url' => $course->image_url ? asset('/storage/' . $course->image_url) : null,
+                        'video_url' => $course->video_url ? asset('/storage/' . $course->video_url) : null,
                         'level' => $course->level,
                         'language' => $course->language,
                         'total_lessons' => $totalLessons,
@@ -106,6 +107,8 @@ class LearningController extends Controller
                 'course_id' => $course->course_id,
                 'title' => $course->title,
                 'description' => $course->description,
+                'image_url' => $course->image_url ? asset('/storage/' . $course->image_url) : null,
+                'video_url' => $course->video_url ? asset('/storage/' . $course->video_url) : null,
                 'level' => $course->level,
                 'is_completed' => $enrollment->completed_at !== null,
                 'sections' => $course->sections->map(function ($section) use ($user) {
@@ -299,7 +302,14 @@ class LearningController extends Controller
                     continue;
                 }
 
+                // Ensure correct_answer is always an array
                 $correctAnswerArray = $question->correct_answer;
+                if (is_string($correctAnswerArray)) {
+                    $correctAnswerArray = json_decode($correctAnswerArray, true) ?? [];
+                } elseif (!is_array($correctAnswerArray)) {
+                    $correctAnswerArray = [];
+                }
+                
                 $isCorrect = $this->checkAnswer($userAnswer, $correctAnswerArray, $question->question_type);
 
                 if ($isCorrect) {

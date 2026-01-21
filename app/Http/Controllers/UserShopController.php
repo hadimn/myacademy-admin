@@ -17,18 +17,29 @@ class UserShopController extends Controller
     public function getCoursesForShop(Request $request)
     {
         try {
-            $user = $request->user();
-            $enrolledCourseIds = $user->enrollments()->pluck('course_id')->toArray();
-
             $courses = CoursesModel::with('pricing')->get();
 
-            $coursesWithEnrollmentStatus = $courses->map(function ($course) use ($enrolledCourseIds) {
-                $course->is_enrolled = in_array($course->course_id, $enrolledCourseIds);
-                return $course;
-            });
+            // Manually authenticate user via Bearer token if present
+            $user = null;
+            if ($request->bearerToken()) {
+                $user = \Laravel\Sanctum\PersonalAccessToken::findToken($request->bearerToken())?->tokenable;
+            }
+
+            // Only add enrollment info if user is authenticated
+            if ($user) {
+                $enrolledCourseIds = $user->enrollments()->pluck('course_id')->toArray();
+                $courses->each(function ($course) use ($enrolledCourseIds) {
+                    $course->is_enrolled = in_array($course->course_id, $enrolledCourseIds);
+                });
+            } else {
+                // For non-authenticated users, set is_enrolled to false
+                $courses->each(function ($course) {
+                    $course->is_enrolled = false;
+                });
+            }
 
             return $this->successResponse(
-                UserShopResource::collection($coursesWithEnrollmentStatus),
+                UserShopResource::collection($courses),
                 "Courses for shop retrieved successfully",
                 Response::HTTP_OK
             );
@@ -46,6 +57,14 @@ class UserShopController extends Controller
     {
         try {
             $user = $request->user();
+
+            // Ensure user is authenticated
+            if (!$user) {
+                return $this->errorResponse(
+                    "You must be logged in to enroll in a course",
+                    Response::HTTP_UNAUTHORIZED
+                );
+            }
 
             // Check if the course exists
             $course = CoursesModel::with('pricing')->find($courseId);
@@ -107,7 +126,6 @@ class UserShopController extends Controller
                 "Enrollment successful",
                 Response::HTTP_CREATED
             );
-
         } catch (\Exception $e) {
             return $this->errorResponse(
                 "Failed to enroll in course",
@@ -148,7 +166,5 @@ class UserShopController extends Controller
                 [$e->getMessage()]
             );
         }
-        
     }
-    
 }

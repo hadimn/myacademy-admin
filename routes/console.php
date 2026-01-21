@@ -11,7 +11,7 @@ Artisan::command('inspire', function () {
 
 // Main streak processing - runs daily at 7:00 PM
 Schedule::command('streaks:send-reminders')
-    ->dailyAt('15:21')
+    ->dailyAt('13:03')
     ->timezone('Africa/Cairo') // Adjust to your timezone
     ->description('Process streaks and send daily reminders');
 
