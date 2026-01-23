@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\AiGenerateRequest;
 use App\Services\Ai\AiPromptBuilder;
-use App\Services\Ai\OpenAIService;
+use App\Services\Ai\GeminiService;
 use Illuminate\Http\JsonResponse;
 
 class AiGenerateController extends Controller
@@ -12,7 +12,7 @@ class AiGenerateController extends Controller
     public function generate(
         AiGenerateRequest $request,
         AiPromptBuilder $promptBuilder,
-        OpenAIService $openAI
+        GeminiService $gemini
     ): JsonResponse {
         $prompt = $promptBuilder->build(
             resource: $request->resource,
@@ -21,7 +21,7 @@ class AiGenerateController extends Controller
             currentData: $request->currentData ?? []
         );
 
-        $result = $openAI->generateStructuredData(
+        $result = $gemini->generateStructuredData(
             prompt: $prompt,
             fields: $request->fields
         );

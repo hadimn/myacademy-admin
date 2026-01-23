@@ -212,7 +212,7 @@ class LearningController extends Controller
                 'title' => $lesson->title,
                 'description' => $lesson->description,
                 'content' => $lesson->content,
-                'video_url' => $lesson->video_url,
+                'video_url' => $lesson->video_url ? asset('/storage/' . $lesson->video_url) : null,
                 'image_url' => $lesson->image_url ? asset('/storage/' . $lesson->image_url) : null,
                 'duration' => $lesson->duration,
                 'lesson_type' => $lesson->lesson_type,
@@ -309,7 +309,7 @@ class LearningController extends Controller
                 } elseif (!is_array($correctAnswerArray)) {
                     $correctAnswerArray = [];
                 }
-                
+
                 $isCorrect = $this->checkAnswer($userAnswer, $correctAnswerArray, $question->question_type);
 
                 if ($isCorrect) {
